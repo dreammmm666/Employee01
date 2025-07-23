@@ -38,7 +38,7 @@ function RegisterUser() {
         role: formData.role
       });
 
-      alert('สร้างบัญชีผู้ใช้สำเร็จ: ' + res.data.message);
+      alert('สร้างธุรการบัญชีและลูกค้าสัมพันธ์ผู้ใช้สำเร็จ: ' + res.data.message);
       setFormData({
         username: '',
         password: '',
@@ -120,7 +120,7 @@ function RegisterUser() {
               <option value='admin'>ผู้ดูแลระบบ</option>
             </select>
 
-            <button type='submit' style={{ marginTop: '1rem' }}>สร้างบัญชี</button>
+            <button type='submit' style={{ marginTop: '1rem' }}>สร้างธุรการบัญชีและลูกค้าสัมพันธ์</button>
           </form>
         </div>
       </div>

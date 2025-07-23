@@ -26,10 +26,10 @@ function AddEmployeeWithImage() {
   const fileInputRef = useRef(null);
 
   const positionOptions = {
-    กราฟิก: ['หัวหน้าทีมกราฟิก', 'กราฟิกดีไซเนอร์'],
-    การตลาด: ['หัวหน้าทีมการตลาด', 'เจ้าหน้าที่การตลาด'],
-    บัญชี: ['หัวหน้าบัญชี', 'เจ้าหน้าที่บัญชี'],
-    บริหาร: ['ผู้จัดการร้าน', 'เจ้าของกิจการ']
+    กราฟิก: ['หัวหน้าฝ่ายกราฟิก', 'เจ้าหน้าที่กราฟิก'],
+    การตลาด: ['หัวหน้าฝ่ายการตลาด', 'เจ้าหน้าที่การตลาด'],
+    ธุรการบัญชีและลูกค้าสัมพันธ์: ['หัวหน้าธุรการ', 'บัญชี','ลูกค้าสัมพันธ์','เจ้าหน้าที่ทั่วไป' ],
+    บริหาร: ['ผู้จัดการทั่วไป', 'ประธานบริษัท']
   };
 
   const handleChange = (e) => {
@@ -172,7 +172,7 @@ function AddEmployeeWithImage() {
               <option value="">-- เลือกแผนก --</option>
               <option value="กราฟิก">กราฟิก</option>
               <option value="การตลาด">การตลาด</option>
-              <option value="บัญชี">บัญชี</option>
+              <option value="ธุรการบัญชีและลูกค้าสัมพันธ์">ธุรการบัญชีและลูกค้าสัมพันธ์</option>
               <option value="บริหาร">บริหาร</option>
               <option value="อื่นๆ">อื่นๆ</option>
             </select>
@@ -206,7 +206,7 @@ function AddEmployeeWithImage() {
             <label>วันเริ่มงาน(ค.ศ)</label>
             <input type="date" name="start_date" value={formData.start_date} onChange={handleChange} />
 
-            <label>เลขบัญชีที่รับเงินเดือน</label>
+            <label>เลขธุรการบัญชีและลูกค้าสัมพันธ์ที่รับเงินเดือน</label>
             <input type="text" name="bank_account" value={formData.bank_account} autoComplete="off" onChange={handleChange} />
 
             <label>เงินเดือนปัจจุบัน</label>

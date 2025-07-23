@@ -16,10 +16,10 @@ function EditEmployee() {
   const fileInputRef = useRef()
 
   const positionOptionsByDepartment = {
-    กราฟิก: ['หัวหน้าทีมกราฟิก', 'กราฟิกดีไซเนอร์'],
-    การตลาด: ['หัวหน้าทีมการตลาด', 'เจ้าหน้าที่การตลาด'],
-    บัญชี: ['หัวหน้าบัญชี', 'เจ้าหน้าที่บัญชี'],
-    บริหาร: ['ผู้จัดการร้าน', 'เจ้าของกิจการ']
+    กราฟิก: ['หัวหน้าฝ่ายกราฟิก', 'เจ้าหน้าที่กราฟิก'],
+    การตลาด: ['หัวหน้าฝ่ายการตลาด', 'เจ้าหน้าที่การตลาด'],
+    ธุรการบัญชีและลูกค้าสัมพันธ์: ['หัวหน้าธุรการ', 'บัญชี','ลูกค้าสัมพันธ์','เจ้าหน้าที่ทั่วไป' ],
+    บริหาร: ['ผู้จัดการทั่วไป', 'ประธานบริษัท']
   }
 
   useEffect(() => {
@@ -229,7 +229,7 @@ function EditEmployee() {
               <label>วันลาออก (ถ้ามี)</label>
               <input type="date" name="resign_date" value={selectedEmployee.resign_date?.slice(0, 10) || ''} onChange={handleInputChange} />
 
-              <label>เลขบัญชีที่รับเงินเดือน</label>
+              <label>เลขธุรการบัญชีและลูกค้าสัมพันธ์ที่รับเงินเดือน</label>
               <input type="text" name="bank_account" value={selectedEmployee.bank_account || ''} onChange={handleInputChange} />
 
               <label>เงินเดือนปัจจุบัน</label>
