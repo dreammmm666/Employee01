@@ -1,0 +1,95 @@
+html, body {
+  height: 100%;
+  margin: 0;
+ background: linear-gradient(135deg, #146b38, #030303);
+
+  font-family: 'Prompt', sans-serif;
+}
+
+.login-box {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 400px;
+  padding: 40px;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.9); /* สีดำเข้มกว่าเดิม */
+  box-sizing: border-box;
+  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.8);
+  border-radius: 12px;
+}
+
+.login-box h2 {
+  margin: 0 0 30px;
+  padding: 0;
+  color: #fff;
+  text-align: center;
+ 
+}
+
+.login-box .user-box {
+  position: relative;
+  
+}
+
+/* ปรับ input ให้พื้นหลังและสีตัวอักษรเหมือนกันหมด */
+.login-box .user-box input {
+  width: 100%;
+  padding: 10px 0;
+  font-size: 16px;
+  color: #fff;
+  margin-bottom: 30px;
+  border: none;
+  border-bottom: 1px solid #03e9f4; /* เส้นขอบสีฟ้าสว่าง */
+  outline: none;
+  background: rgba(0, 0, 0, 0.7); /* พื้นหลังสีเดียวกับกล่อง (เข้มโปร่ง) */
+  border-radius: 4px;
+}
+
+/* Label สีขาวเพื่อความสม่ำเสมอ */
+.login-box .user-box label {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  padding: 0;
+  font-size: 16px;
+  color: #fff;
+  pointer-events: none;
+  transition: 0.5s;
+ 
+}
+
+/* เคลื่อน label เมื่อ focus หรือมีค่ากรอกแล้ว */
+.login-box .user-box input:focus ~ label,
+.login-box .user-box input:valid ~ label {
+  top: -20px;
+  left: 0;
+  color: #27be6b;
+  font-size: 12px;
+  
+}
+
+.login-box form button {
+  position: relative;
+  display: inline-block;
+  padding: 10px 20px;
+  color: #0ff403;
+  font-size: 16px;
+  text-transform: uppercase;
+  background: transparent;
+  border: 2px solid #14a63b;
+  cursor: pointer;
+  overflow: hidden;
+  transition: 0.5s;
+  margin-top: 40px;
+  letter-spacing: 4px;
+  border-radius: 8px;
+}
+
+.login-box form button:hover {
+  background: #0fea5f;
+  color: #000;
+  box-shadow: 0 0 10px #26d034, 0 0 40px #03f427, 0 0 80px #0ff403;
+}
+
+
