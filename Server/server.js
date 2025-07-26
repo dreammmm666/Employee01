@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
+
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -18,7 +18,7 @@ const SECRET_KEY = 'your_secret_key';
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+
 app.use(express.json());
 
 // สร้างโฟลเดอร์ uploads ถ้ายังไม่มี

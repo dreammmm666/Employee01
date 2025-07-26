@@ -120,7 +120,7 @@ function RegisterUser() {
               <option value='admin'>ผู้ดูแลระบบ</option>
             </select>
 
-            <button type='submit' style={{ marginTop: '1rem' }}>สร้างธุรการบัญชีและลูกค้าสัมพันธ์</button>
+            <button type='submit' style={{ marginTop: '1rem' }}>สร้างบัญชี</button>
           </form>
         </div>
       </div>
