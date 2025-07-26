@@ -38,7 +38,7 @@ function RegisterUser() {
         role: formData.role
       });
 
-      alert('สร้างธุรการบัญชีและลูกค้าสัมพันธ์ผู้ใช้สำเร็จ: ' + res.data.message);
+      alert('สร้างรบัญชีผู้ใช้สำเร็จ: ' + res.data.message);
       setFormData({
         username: '',
         password: '',
