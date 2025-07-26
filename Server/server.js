@@ -14,8 +14,10 @@ app.use(compression());
 const PORT = 3001;
 const SECRET_KEY = 'your_secret_key';
 app.use(cors({
-  origin: 'https://employee01.onrender.com', // ✅ อนุญาต frontend ที่เรารู้
-  credentials: true // ถ้ามีการส่ง cookie/token
+  origin: 'https://employee01.onrender.com', // ✅ ให้ตรงกับ URL ฝั่ง frontend จริง ๆ
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
