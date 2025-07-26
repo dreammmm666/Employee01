@@ -229,7 +229,7 @@ function EditEmployee() {
               <label>วันลาออก (ถ้ามี)</label>
               <input type="date" name="resign_date" value={selectedEmployee.resign_date?.slice(0, 10) || ''} onChange={handleInputChange} />
 
-              <label>เลขธุรการบัญชีและลูกค้าสัมพันธ์ที่รับเงินเดือน</label>
+              <label>เลขบัญชีที่รับเงินเดือน</label>
               <input type="text" name="bank_account" value={selectedEmployee.bank_account || ''} onChange={handleInputChange} />
 
               <label>เงินเดือนปัจจุบัน</label>

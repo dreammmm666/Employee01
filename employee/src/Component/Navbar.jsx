@@ -81,7 +81,7 @@ const NavBar = () => {
         </Link>
         <Link to="/RegisterUser" className="nav-button">
          <i class="fa-solid fa-plus" style={{ marginLeft: '2rem' }}></i>
-          <span style={{ marginLeft: '10px' }}>สร้างธุรการบัญชีและลูกค้าสัมพันธ์</span>
+          <span style={{ marginLeft: '10px' }}>สร้างบัญชี</span>
         </Link>
       </div>
       

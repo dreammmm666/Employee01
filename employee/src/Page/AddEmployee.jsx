@@ -206,7 +206,7 @@ function AddEmployeeWithImage() {
             <label>วันเริ่มงาน(ค.ศ)</label>
             <input type="date" name="start_date" value={formData.start_date} onChange={handleChange} />
 
-            <label>เลขธุรการบัญชีและลูกค้าสัมพันธ์ที่รับเงินเดือน</label>
+            <label>เลขบัญชีที่รับเงินเดือน</label>
             <input type="text" name="bank_account" value={formData.bank_account} autoComplete="off" onChange={handleChange} />
 
             <label>เงินเดือนปัจจุบัน</label>
