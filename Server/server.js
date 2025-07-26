@@ -8,6 +8,9 @@ const bcrypt = require('bcrypt');
 const db = require('./db');
 
 const app = express();
+const compression = require('compression');
+app.use(compression());
+
 const PORT = 3001;
 const SECRET_KEY = 'your_secret_key';
 
@@ -420,10 +423,37 @@ app.post('/register', async (req, res) => {
   }
 });
 
-app.get('/', (req, res) => {
-  res.send('Server is running!');
+
+
+const distPath = path.join(__dirname, '../employee/dist'); // แก้ตามโฟลเดอร์จริง
+
+// ตรวจสอบว่ามี index.html หรือไม่
+const indexPath = path.join(distPath, 'index.html');
+const indexExists = fs.existsSync(indexPath);
+
+if (!indexExists) {
+  console.error('❌ ไม่พบ index.html ใน:', indexPath);
+} else {
+  console.log('✅ พบ index.html แล้วใน:', indexPath);
+}
+
+// ให้ Express เสิร์ฟ static ไฟล์ของ React
+app.use(express.static(distPath));
+
+// จับทุก route ที่ไม่ใช่ API → ส่งไปหน้าแรก React (SPA)
+app.get('*', (req, res) => {
+  res.sendFile(indexPath);
 });
- //เริ่มเซิร์ฟเวอร์
+
+
+
+// เริ่มเซิร์ฟเวอร์
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+
+
+// Serve static files from React build folder
+
+
