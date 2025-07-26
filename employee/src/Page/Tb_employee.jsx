@@ -164,7 +164,7 @@ function EmployeeTable() {
           <p><strong>วันที่เริ่มงาน:</strong> {formatDate(selectedEmployee.start_date)}</p>
           <p><strong>วันที่ลาออก:</strong> {formatDate(selectedEmployee.resign_date)}</p>
           <p><strong>อายุงาน:</strong> {formatYearsOfService(selectedEmployee.start_date, selectedEmployee.resign_date)}</p>
-          <p><strong>เลขบัญชีที่ใช้รับเงินเดือน:</strong> {selectedEmployee.bank_account}</p>
+          <p><strong>เลขบัญชีที่รับเงินเดือน:</strong> {selectedEmployee.bank_account}</p>
           <p><strong>เงินเดือนปัจจุบัน:</strong> {selectedEmployee.current_salary} บาท</p>
         </div>
       </div>
