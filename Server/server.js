@@ -425,7 +425,7 @@ app.post('/register', async (req, res) => {
 
 
 
-const distPath = path.join(__dirname, '../employee/dist'); // แก้ตามโฟลเดอร์จริง
+const distPath = path.join(__dirname, 'employee-dist');
 
 // ตรวจสอบว่ามี index.html หรือไม่
 const indexPath = path.join(distPath, 'index.html');
@@ -437,14 +437,13 @@ if (!indexExists) {
   console.log('✅ พบ index.html แล้วใน:', indexPath);
 }
 
-// ให้ Express เสิร์ฟ static ไฟล์ของ React
+// ✅ เสิร์ฟไฟล์ static จาก employee-dist
 app.use(express.static(distPath));
 
-// จับทุก route ที่ไม่ใช่ API → ส่งไปหน้าแรก React (SPA)
+// ✅ ส่ง index.html เมื่อไม่เจอ route ที่ตรง
 app.get('*', (req, res) => {
   res.sendFile(indexPath);
 });
-
 
 
 // เริ่มเซิร์ฟเวอร์
