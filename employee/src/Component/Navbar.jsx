@@ -79,11 +79,11 @@ const NavBar = () => {
          <i class="fa-solid fa-table-list" style={{ marginLeft: '2rem' }}></i>
           <span style={{ marginLeft: '10px' }}>ประวัติการแก้ไข</span>
         </Link>
-         {/*  
+        
         <Link to="/RegisterUser" className="nav-button">
          <i class="fa-solid fa-plus" style={{ marginLeft: '2rem' }}></i>
           <span style={{ marginLeft: '10px' }}>สร้างบัญชี</span>
-        </Link>*/}
+        </Link>
       </div>
       
       
