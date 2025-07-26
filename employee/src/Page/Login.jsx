@@ -1,13 +1,13 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import '../Css/Login.css'
+import '../Css/Login.css' // ปรับให้ตรงกับ path ของคุณ
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [form, setForm] = useState({ username: '', password: '' })
   const navigate = useNavigate()
- const API_URL = import.meta.env.VITE_API_URL
+  const API_URL = import.meta.env.VITE_API_URL // ใช้จาก .env
 
   const togglePasswordVisibility = () => {
     setShowPassword(prev => !prev)
@@ -18,23 +18,28 @@ function Login() {
   }
 
   const handleSubmit = async (e) => {
-  e.preventDefault()
-  try {
-    const res = await axios.post(`${API_URL}/login`, form)
-    console.log('Login response:', res.data)
-    if (res.data && res.data.user_id) {
-      localStorage.setItem('user_id', res.data.user_id)
-      localStorage.setItem('username', res.data.username)
-      localStorage.setItem('full_name', res.data.full_name)
-      localStorage.setItem('role', res.data.role)
-      navigate('/Tb_employee')
-    } else {
+    e.preventDefault()
+    try {
+      const res = await axios.post(`${API_URL}/login`, form, {
+        withCredentials: true // ✅ เผื่อใช้ cookie/token ข้าม domain
+      })
+      console.log('Login response:', res.data)
+
+      if (res.data && res.data.user_id) {
+        // เก็บข้อมูลลง localStorage
+        localStorage.setItem('user_id', res.data.user_id)
+        localStorage.setItem('username', res.data.username)
+        localStorage.setItem('full_name', res.data.full_name)
+        localStorage.setItem('role', res.data.role)
+        navigate('/Tb_employee') // ไปหน้าหลังบ้าน
+      } else {
+        alert('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')
+      }
+    } catch (error) {
+      console.error('Login error:', error)
       alert('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')
     }
-  } catch (error) {
-    alert('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')
   }
-}
 
   return (
     <div className="login-box">
@@ -49,7 +54,7 @@ function Login() {
             onChange={handleChange}
             value={form.username}
           />
-          <label className='label1'>Username</label>
+          <label className="label1">Username</label>
         </div>
 
         <div className="user-box" style={{ position: 'relative' }}>
