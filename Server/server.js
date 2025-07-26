@@ -420,7 +420,9 @@ app.post('/register', async (req, res) => {
   }
 });
 
-
+app.get('/', (req, res) => {
+  res.send('Server is running!');
+});
  //เริ่มเซิร์ฟเวอร์
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
