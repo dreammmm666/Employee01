@@ -18,15 +18,18 @@ function EditEmployee() {
   const positionOptionsByDepartment = {
     กราฟิก: ['หัวหน้าฝ่ายกราฟิก', 'เจ้าหน้าที่กราฟิก'],
     การตลาด: ['หัวหน้าฝ่ายการตลาด', 'เจ้าหน้าที่การตลาด'],
-    ธุรการบัญชีและลูกค้าสัมพันธ์: ['หัวหน้าธุรการ', 'บัญชี','ลูกค้าสัมพันธ์','เจ้าหน้าที่ทั่วไป' ],
+    ธุรการบัญชีและลูกค้าสัมพันธ์: ['หัวหน้าธุรการ', 'บัญชี', 'ลูกค้าสัมพันธ์', 'เจ้าหน้าที่ทั่วไป'],
     บริหาร: ['ผู้จัดการทั่วไป', 'ประธานบริษัท']
   }
 
+  // ใช้ URL backend จาก env หรือ fallback เป็น localhost
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+
   useEffect(() => {
-    axios.get('http://localhost:3001/api/employees')
+    axios.get(`${API_URL}/api/employees`)
       .then(res => setEmployees(res.data))
       .catch(err => alert('เกิดข้อผิดพลาดในการดึงข้อมูลพนักงาน: ' + err.message))
-  }, [])
+  }, [API_URL])
 
   useEffect(() => {
     if (selectedEmployee?.department && positionOptionsByDepartment[selectedEmployee.department]) {
@@ -53,7 +56,7 @@ function EditEmployee() {
     setFilteredSuggestions([])
 
     if (emp.profile_image) {
-      setImagePreview(`http://localhost:3001/uploads/${emp.profile_image}`)
+      setImagePreview(`${API_URL}/uploads/${emp.profile_image}`)
     } else {
       setImagePreview(null)
     }
@@ -101,7 +104,7 @@ function EditEmployee() {
     }
 
     try {
-      await axios.put(`http://localhost:3001/api/EDemployees/${selectedEmployee.employee_id}`, formData, {
+      await axios.put(`${API_URL}/api/EDemployees/${selectedEmployee.employee_id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
 
@@ -155,29 +158,30 @@ function EditEmployee() {
           {selectedEmployee && (
             <div className="edit-box">
               <h3>✏️ แก้ไขข้อมูล: {selectedEmployee.full_name}</h3>
-            <div>
-              {imagePreview && (
-                <img src={imagePreview} alt="Preview" style={{ width: '120px', marginBottom: '10px' }} />
-              )}
-              <br></br>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault()
-                  fileInputRef.current?.click()
-                }}
-                style={{ marginBottom: '10px' ,}}
-              >
-                เปลี่ยนรูปภาพ
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleImageChange}
-                style={{ display: 'none' }}
-                accept="image/*"
-              />
-             </div>
+              <div>
+                {imagePreview && (
+                  <img src={imagePreview} alt="Preview" style={{ width: '120px', marginBottom: '10px' }} />
+                )}
+                <br />
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    fileInputRef.current?.click()
+                  }}
+                  style={{ marginBottom: '10px' }}
+                >
+                  เปลี่ยนรูปภาพ
+                </button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageChange}
+                  style={{ display: 'none' }}
+                  accept="image/*"
+                />
+              </div>
+
               <label>ชื่อ - นามสกุล</label>
               <input type="text" name="full_name" value={selectedEmployee.full_name || ''} autoComplete='off' onChange={handleInputChange} />
 
