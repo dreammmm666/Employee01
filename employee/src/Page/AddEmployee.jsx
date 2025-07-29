@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import NavBar from '../Component/Navbar';
-import '../Css/Edit.css';
+import '../Css/Edit.css'; // CSS เดิมของคุณ
 
 function AddEmployeeWithImage() {
   const [formData, setFormData] = useState({
@@ -28,7 +28,7 @@ function AddEmployeeWithImage() {
   const positionOptions = {
     กราฟิก: ['หัวหน้าฝ่ายกราฟิก', 'เจ้าหน้าที่กราฟิก'],
     การตลาด: ['หัวหน้าฝ่ายการตลาด', 'เจ้าหน้าที่การตลาด'],
-    ธุรการบัญชีและลูกค้าสัมพันธ์: ['หัวหน้าธุรการ', 'บัญชี','ลูกค้าสัมพันธ์','เจ้าหน้าที่ทั่วไป' ],
+    ธุรการบัญชีและลูกค้าสัมพันธ์: ['หัวหน้าธุรการ', 'บัญชี', 'ลูกค้าสัมพันธ์', 'เจ้าหน้าที่ทั่วไป'],
     บริหาร: ['ผู้จัดการทั่วไป', 'ประธานบริษัท']
   };
 
@@ -93,7 +93,7 @@ function AddEmployeeWithImage() {
         data.append('profile_image', imageFile);
       }
 
-      const res = await axios.post('http://localhost:3001/api/employees', data, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/employees`, data, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
@@ -143,7 +143,12 @@ function AddEmployeeWithImage() {
       <NavBar />
       <div className='page-background'>
         <div className="employee-table-container">
-          <form onSubmit={handleSubmit} className="edit-box01" style={{ maxWidth: '600px' }} encType="multipart/form-data">
+          <form
+            onSubmit={handleSubmit}
+            className="edit-box01"
+            style={{ maxWidth: '600px' }}
+            encType="multipart/form-data"
+          >
             <h2>เพิ่มข้อมูลพนักงาน</h2>
 
             <label>รหัสพนักงาน</label>
@@ -218,7 +223,16 @@ function AddEmployeeWithImage() {
 
             {imagePreview && (
               <div style={{ marginTop: '10px' }}>
-                <img src={imagePreview} alt="Preview" style={{ maxWidth: '200px', maxHeight: '200px', borderRadius: '10px', objectFit: 'cover' }} />
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  style={{
+                    maxWidth: '200px',
+                    maxHeight: '200px',
+                    borderRadius: '10px',
+                    objectFit: 'cover'
+                  }}
+                />
               </div>
             )}
 
