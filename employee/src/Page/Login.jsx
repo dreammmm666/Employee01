@@ -18,28 +18,27 @@ function Login() {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    try {
-     const res = await axios.post('/api/login', form, {
-  withCredentials: true 
-})
-      console.log('Login response:', res.data)
+  e.preventDefault();
+  try {
+    const res = await axios.post(`${API_URL}/api/login`, form, {
+      withCredentials: true
+    });
+    console.log('Login response:', res.data);
 
-      if (res.data && res.data.user_id) {
-        // เก็บข้อมูลลง localStorage
-        localStorage.setItem('user_id', res.data.user_id)
-        localStorage.setItem('username', res.data.username)
-        localStorage.setItem('full_name', res.data.full_name)
-        localStorage.setItem('role', res.data.role)
-        navigate('/Tb_employee') 
-      } else {
-        alert('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')
-      }
-    } catch (error) {
-      console.error('Login error:', error)
-      alert('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')
+    if (res.data && res.data.user_id) {
+      localStorage.setItem('user_id', res.data.user_id);
+      localStorage.setItem('username', res.data.username);
+      localStorage.setItem('full_name', res.data.full_name);
+      localStorage.setItem('role', res.data.role);
+      navigate('/Tb_employee');
+    } else {
+      alert('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
     }
+  } catch (error) {
+    console.error('Login error:', error);
+    alert('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
   }
+};
 
   return (
     <div className="login-box">

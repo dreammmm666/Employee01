@@ -12,6 +12,8 @@ function RegisterUser() {
     role: 'user'
   });
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -31,7 +33,7 @@ function RegisterUser() {
     }
 
     try {
-      const res = await axios.post('http://localhost:3001/register', {
+      const res = await axios.post(`${API_URL}/register`, {
         username: formData.username,
         password: formData.password,
         full_name: formData.full_name,
@@ -70,40 +72,41 @@ function RegisterUser() {
             />
 
             <label style={{ marginTop: '10px',  display: 'block' }}>รหัสผ่าน</label>
-<input
-  type='password'
-  name='password'
-  value={formData.password}
-  onChange={handleChange}
-  required
-  style={{
-    width: '100%',
-    padding: '8px',
-    marginTop: '5px',
-    marginBottom: '15px',
-    border: '1px solid #ccc',
-    borderRadius: '5px'
-  }}
-/>
+            <input
+              type='password'
+              name='password'
+              value={formData.password}
+              onChange={handleChange}
+              required
+              style={{
+                width: '100%',
+                padding: '8px',
+                marginTop: '5px',
+                marginBottom: '15px',
+                border: '1px solid #ccc',
+                borderRadius: '5px'
+              }}
+            />
 
-<label style={{ marginTop: '10px',  display: 'block' }}>ยืนยันรหัสผ่าน</label>
-<input
-  type='password'
-  name='confirmPassword'
-  value={formData.confirmPassword}
-  onChange={handleChange}
-  required
-  style={{
-    width: '100%',
-    padding: '8px',
-    marginTop: '5px',
-    marginBottom: '15px',
-    border: '1px solid #ccc',
-    borderRadius: '5px'
-  }}
-/>
+            <label style={{ marginTop: '10px',  display: 'block' }}>ยืนยันรหัสผ่าน</label>
+            <input
+              type='password'
+              name='confirmPassword'
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+              style={{
+                width: '100%',
+                padding: '8px',
+                marginTop: '5px',
+                marginBottom: '15px',
+                border: '1px solid #ccc',
+                borderRadius: '5px'
+              }}
+            />
 
-           <br></br>
+            <br />
+
             <label>ชื่อ-นามสกุล</label>
             <input
               type='text'
@@ -116,7 +119,7 @@ function RegisterUser() {
 
             <label>สิทธิ์ผู้ใช้</label>
             <select name='role' value={formData.role} onChange={handleChange}>
-              <option value='user'>พนักงานทั่วไป</option>
+              
               <option value='admin'>ผู้ดูแลระบบ</option>
             </select>
 
