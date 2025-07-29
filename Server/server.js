@@ -87,7 +87,7 @@ function formatDate(dateStr) {
 // --- API ---
 
 // Login
-app.post('/login', (req, res) => {
+app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
 
   const sql = 'SELECT * FROM users WHERE username = ?';
