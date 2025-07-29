@@ -10,6 +10,9 @@ function EmployeeTable() {
   const [showModal, setShowModal] = useState(false)
   const itemsPerPage = 10
 
+  // ใช้ URL backend จาก environment variable หรือ fallback เป็น localhost
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+
   const formatDate = (dateStr) => {
     if (!dateStr) return '-'
     const date = new Date(dateStr)
@@ -20,6 +23,7 @@ function EmployeeTable() {
   }
 
   const formatYearsOfService = (startDateStr, resignDateStr) => {
+    if (!startDateStr) return '-'
     const start = new Date(startDateStr)
     const end = resignDateStr ? new Date(resignDateStr) : new Date()
 
@@ -46,16 +50,29 @@ function EmployeeTable() {
     return result.trim()
   }
 
-  useEffect(() => {
-    axios.get('http://localhost:3001/api/employees')
-      .then((res) => {
-        setEmployees(res.data)
-      })
-      .catch((err) => {
-        console.error('Error fetching employees:', err)
-      })
-  }, [])
+  const calculateAge = (birthDateString) => {
+    if (!birthDateString) return '-'
+    const birthDate = new Date(birthDateString)
+    const today = new Date()
 
+    let years = today.getFullYear() - birthDate.getFullYear()
+    let months = today.getMonth() - birthDate.getMonth()
+
+    if (months < 0) {
+      years--
+      months += 12
+    }
+
+    return `${years} ปี ${months} เดือน`
+  }
+
+  useEffect(() => {
+    axios.get(`${API_URL}/api/employees`)
+      .then(res => setEmployees(res.data))
+      .catch(err => console.error('Error fetching employees:', err))
+  }, [API_URL])
+
+  // Pagination
   const indexOfLastItem = currentPage * itemsPerPage
   const indexOfFirstItem = indexOfLastItem - itemsPerPage
   const currentEmployees = employees.slice(indexOfFirstItem, indexOfLastItem)
@@ -72,6 +89,7 @@ function EmployeeTable() {
     }
   }
 
+  // Modal handlers
   const handleRowClick = (employee) => {
     setSelectedEmployee(employee)
     setShowModal(true)
@@ -81,99 +99,77 @@ function EmployeeTable() {
     setShowModal(false)
   }
 
-
-  const calculateAge = (birthDateString) => {
-  if (!birthDateString) return '-';
-  const birthDate = new Date(birthDateString);
-  const today = new Date();
-
-  let years = today.getFullYear() - birthDate.getFullYear();
-  let months = today.getMonth() - birthDate.getMonth();
-
-  if (months < 0) {
-    years--;
-    months += 12;
-  }
-
-  return `${years} ปี ${months} เดือน`;
-};
-
   return (
     <>
       <NavBar />
       <div className='page-background'>
-      <div className="employee-table-container">
-        <h2>ข้อมูลพนักงาน</h2>
-        <table className="employee-table">
-          <thead>
-            <tr>
-              <th>รหัสพนักงาน</th>
-              <th>ชื่อ-นามสกุล</th>
-              <th>แผนก</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentEmployees.map(emp => (
-              <tr key={emp.employee_id} onClick={() => handleRowClick(emp)} className="clickable-row">
-                <td>{emp.employee_id}</td>
-                <td>{emp.full_name}</td>
-                <td>{emp.department}</td>
+        <div className="employee-table-container">
+          <h2>ข้อมูลพนักงาน</h2>
+          <table className="employee-table">
+            <thead>
+              <tr>
+                <th>รหัสพนักงาน</th>
+                <th>ชื่อ-นามสกุล</th>
+                <th>แผนก</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {currentEmployees.map(emp => (
+                <tr key={emp.employee_id} onClick={() => handleRowClick(emp)} className="clickable-row">
+                  <td>{emp.employee_id}</td>
+                  <td>{emp.full_name}</td>
+                  <td>{emp.department}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-        <div className="pagination-controls">
-          <button onClick={handlePrevPage} disabled={currentPage === 1}>ย้อนกลับ</button>
-          <span> หน้า {currentPage} / {Math.ceil(employees.length / itemsPerPage)}</span>
-          <button onClick={handleNextPage} disabled={currentPage === Math.ceil(employees.length / itemsPerPage)}>ถัดไป</button>
+          <div className="pagination-controls">
+            <button onClick={handlePrevPage} disabled={currentPage === 1}>ย้อนกลับ</button>
+            <span> หน้า {currentPage} / {Math.ceil(employees.length / itemsPerPage)}</span>
+            <button onClick={handleNextPage} disabled={currentPage === Math.ceil(employees.length / itemsPerPage)}>ถัดไป</button>
+          </div>
         </div>
       </div>
-</div>
+
       {/* Modal */}
-{/* Modal */}
-{showModal && selectedEmployee && (
-  <div className="modal-overlay" onClick={handleCloseModal}>
-    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-      <button className="close-button" onClick={handleCloseModal}>×</button>
-      <div className="modal-body-horizontal">
-        <div className="modal-image">
-          <img
-            src={`http://localhost:3001/uploads/${selectedEmployee.profile_image || 'default.jpg'}`}
-            alt="Employee"
-          />
+      {showModal && selectedEmployee && (
+        <div className="modal-overlay" onClick={handleCloseModal}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <button className="close-button" onClick={handleCloseModal}>×</button>
+            <div className="modal-body-horizontal">
+              <div className="modal-image">
+                <img
+                  src={`${API_URL}/uploads/${selectedEmployee.profile_image || 'default.jpg'}`}
+                  alt="Employee"
+                />
+              </div>
+              <div className="modal-info">
+                <p><strong>รหัสพนักงาน:</strong> {selectedEmployee.employee_id}</p>
+                <p><strong>รหัสประจําตัวประชาชน:</strong> {selectedEmployee.citizen_id}</p>
+                <p><strong>ชื่อ:</strong> {selectedEmployee.full_name}</p>
+                <p><strong>เพศ:</strong> {selectedEmployee.gender}</p>
+                <p><strong>อายุ:</strong> {calculateAge(selectedEmployee.birth_date)}</p>
+                <p><strong>แผนก:</strong> {selectedEmployee.department}</p>
+                <p><strong>ตําเเหน่ง:</strong> {selectedEmployee.position}</p>
+                {selectedEmployee.Google_drive && (
+                  <p>
+                    <strong>ลิงก์ Google Drive:</strong>{' '}
+                    <a href={selectedEmployee.Google_drive} target="_blank" rel="noopener noreferrer">
+                      คลิกเพื่อดู
+                    </a>
+                  </p>
+                )}
+                <p><strong>วันที่เริ่มงาน:</strong> {formatDate(selectedEmployee.start_date)}</p>
+                <p><strong>วันที่ลาออก:</strong> {formatDate(selectedEmployee.resign_date)}</p>
+                <p><strong>อายุงาน:</strong> {formatYearsOfService(selectedEmployee.start_date, selectedEmployee.resign_date)}</p>
+                <p><strong>เลขบัญชีที่รับเงินเดือน:</strong> {selectedEmployee.bank_account}</p>
+                <p><strong>เงินเดือนปัจจุบัน:</strong> {selectedEmployee.current_salary} บาท</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="modal-info">
-          <p><strong>รหัสพนักงาน:</strong> {selectedEmployee.employee_id}</p>
-         <p><strong>รหัสประจําตัวประชาชน:</strong> {selectedEmployee.citizen_id}</p>
-           <p><strong>ชื่อ:</strong> {selectedEmployee.full_name}</p>
-          <p><strong>เพศ:</strong> {selectedEmployee.gender}</p>
-          <p><strong>อายุ:</strong> {calculateAge(selectedEmployee.birth_date)}</p>
-          <p><strong>แผนก:</strong> {(selectedEmployee.department)}</p>
-          <p><strong>ตําเเหน่ง:</strong> {(selectedEmployee.position)}</p>
-          {selectedEmployee.Google_drive && (
-  <p>
-    <strong>ลิงก์ Google Drive:</strong>{' '}
-    <a href={selectedEmployee.Google_drive} target="_blank" rel="noopener noreferrer">
-      คลิกเพื่อดู
-    </a>
-  </p>
-)}
-
-          
-          <p><strong>วันที่เริ่มงาน:</strong> {formatDate(selectedEmployee.start_date)}</p>
-          <p><strong>วันที่ลาออก:</strong> {formatDate(selectedEmployee.resign_date)}</p>
-          <p><strong>อายุงาน:</strong> {formatYearsOfService(selectedEmployee.start_date, selectedEmployee.resign_date)}</p>
-          <p><strong>เลขบัญชีที่รับเงินเดือน:</strong> {selectedEmployee.bank_account}</p>
-          <p><strong>เงินเดือนปัจจุบัน:</strong> {selectedEmployee.current_salary} บาท</p>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
-
-
-      
+      )}
     </>
   )
 }
