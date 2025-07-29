@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
-import '../Css/Login.css' // ปรับให้ตรงกับ path ของคุณ
+import '../Css/Login.css' 
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false)
@@ -20,9 +20,9 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      const res = await axios.post(`${API_URL}/login`, form, {
-        withCredentials: true // ✅ เผื่อใช้ cookie/token ข้าม domain
-      })
+     const res = await axios.post('/api/login', form, {
+  withCredentials: true 
+})
       console.log('Login response:', res.data)
 
       if (res.data && res.data.user_id) {
@@ -31,7 +31,7 @@ function Login() {
         localStorage.setItem('username', res.data.username)
         localStorage.setItem('full_name', res.data.full_name)
         localStorage.setItem('role', res.data.role)
-        navigate('/Tb_employee') // ไปหน้าหลังบ้าน
+        navigate('/Tb_employee') 
       } else {
         alert('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')
       }

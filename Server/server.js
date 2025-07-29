@@ -12,13 +12,42 @@ const compression = require('compression');
 app.use(compression());
 
 const PORT = 3001;
-const SECRET_KEY = 'your_secret_key';
-app.use(cors({
-  origin: 'https://employee01.onrender.com', // ✅ ให้ตรงกับ URL ฝั่ง frontend จริง ๆ
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+
+const allowedOrigins = [
+  'http://localhost:5173',        // สำหรับ dev ที่รัน localhost
+  'https://employee01.onrender.com' // สำหรับ prod ที่ deploy จริง
+];
+
+
+app.options('*', cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+
+
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 // Middleware
