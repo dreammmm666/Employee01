@@ -67,10 +67,17 @@ function EmployeeTable() {
   }
 
   useEffect(() => {
-    axios.get(`${API_URL}/api/employees`)
-      .then(res => setEmployees(res.data))
-      .catch(err => console.error('Error fetching employees:', err))
-  }, [API_URL])
+  const fetchData = async () => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000)) // wait 1 sec
+      const res = await axios.get(`${API_URL}/api/employees`)
+      setEmployees(res.data)
+    } catch (err) {
+      console.error('Error fetching employees:', err)
+    }
+  }
+  fetchData()
+}, [API_URL])
 
   // Pagination
   const indexOfLastItem = currentPage * itemsPerPage
