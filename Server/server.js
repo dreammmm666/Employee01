@@ -18,6 +18,7 @@ const allowedOrigins = [
   'https://employee01.onrender.com' // สำหรับ prod ที่ deploy จริง
 ];
 
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.options('*', cors({
   origin: function (origin, callback) {
