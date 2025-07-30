@@ -146,10 +146,13 @@ function EmployeeTable() {
             <button className="close-button" onClick={handleCloseModal}>×</button>
             <div className="modal-body-horizontal">
               <div className="modal-image">
-                <img
-                  src={`${API_URL}/uploads/${selectedEmployee.profile_image || 'default.jpg'}`}
-                  alt="Employee"
-                />
+               <img
+  src={`${API_URL}/uploads/${selectedEmployee.profile_image || 'default.jpg'}`}
+  alt="Employee"
+  onError={(e) => {
+    e.target.src = `${API_URL}/uploads/default.jpg`
+  }}
+/>
               </div>
               <div className="modal-info">
                 <p><strong>รหัสพนักงาน:</strong> {selectedEmployee.employee_id}</p>
