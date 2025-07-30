@@ -1,11 +1,12 @@
 const express = require('express');
 const cors = require('cors');
-
+const cloudinary = require('./cloudinary');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcrypt');
 const db = require('./db');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 const app = express();
 const compression = require('compression');
@@ -18,7 +19,7 @@ const allowedOrigins = [
   'https://employee01.onrender.com' // สำหรับ prod ที่ deploy จริง
 ];
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 app.options('*', cors({
   origin: function (origin, callback) {
@@ -50,7 +51,7 @@ app.use(cors({
 
 
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
+//app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 // Middleware
 
 
@@ -63,14 +64,15 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // ตั้งค่า multer สำหรับเก็บไฟล์
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'employee_profile_images', // ตั้งชื่อโฟลเดอร์บน Cloudinary
+    allowed_formats: ['jpg', 'png', 'jpeg'],
+    public_id: (req, file) => Date.now() + '-' + file.originalname
   }
 });
+
 const upload = multer({ storage });
 
 // ฟังก์ชันสร้าง employee_id แบบง่าย
@@ -162,80 +164,85 @@ app.get('/api/employees/search', (req, res) => {
   });
 });
 
-// เพิ่มพนักงาน พร้อมรับไฟล์ profile_image
-app.post('/api/employees', upload.single('profile_image'), (req, res) => {
-  const {
-    employee_id,
-    full_name,
-    gender,
-    age,
-    birth_date,
-    citizen_id,
-    start_date,
-    bank_account,
-    current_salary,
-    department,
-    position,
-    Google_drive
-  } = req.body;
+app.post('/api/employees', upload.single('profile_image'), async (req, res) => {
+  try {
+    const {
+      employee_id,
+      full_name,
+      gender,
+      age,
+      birth_date,
+      citizen_id,
+      start_date,
+      bank_account,
+      current_salary,
+      department,
+      position,
+      Google_drive
+    } = req.body;
 
-  const profileImage = req.file ? req.file.filename : null;
+    let profileImage = null;
 
-  // คำนวณปีทำงาน
-  const formattedStartDate = start_date ? new Date(start_date) : null;
-  const formattedNow = new Date();
-  let years_of_service = 0;
-  if (formattedStartDate) {
-    years_of_service = formattedNow.getFullYear() - formattedStartDate.getFullYear();
-    const hasNotCompletedYear =
-      formattedNow.getMonth() < formattedStartDate.getMonth() ||
-      (formattedNow.getMonth() === formattedStartDate.getMonth() &&
-        formattedNow.getDate() < formattedStartDate.getDate());
-    if (hasNotCompletedYear) {
-      years_of_service -= 1;
+    if (req.file && req.file.path) {
+  profileImage = req.file.path;
+}
+
+    // คำนวณปีทำงาน
+    const formattedStartDate = start_date ? new Date(start_date) : null;
+    const formattedNow = new Date();
+    let years_of_service = 0;
+    if (formattedStartDate) {
+      years_of_service = formattedNow.getFullYear() - formattedStartDate.getFullYear();
+      const hasNotCompletedYear =
+        formattedNow.getMonth() < formattedStartDate.getMonth() ||
+        (formattedNow.getMonth() === formattedStartDate.getMonth() &&
+          formattedNow.getDate() < formattedStartDate.getDate());
+      if (hasNotCompletedYear) {
+        years_of_service -= 1;
+      }
     }
+
+    const sql = `
+      INSERT INTO employee (
+        employee_id, full_name, gender, age, birth_date, citizen_id,
+        start_date, years_of_service, bank_account, current_salary, department, profile_image, position, Google_drive
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const values = [
+      employee_id,
+      full_name,
+      gender,
+      age ? parseInt(age) : 0,
+      birth_date || null,
+      citizen_id,
+      start_date || null,
+      years_of_service,
+      bank_account || null,
+      current_salary ? parseFloat(current_salary) : 0,
+      department,
+      profileImage,  // <-- เอา URL จาก Cloudinary
+      position,
+      Google_drive
+    ];
+
+    db.query(sql, values, (err, result) => {
+      if (err) {
+        console.error('Insert error:', err);
+        return res.status(500).json({ error: 'เกิดข้อผิดพลาดในการเพิ่มข้อมูล' });
+      }
+      res.json({ message: 'เพิ่มข้อมูลพนักงานสำเร็จ', employee_id, profile_image: profileImage });
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการอัปโหลดภาพ', details: error.message });
   }
-
-  
-
-  const sql = `
-    INSERT INTO employee (
-      employee_id, full_name, gender, age, birth_date, citizen_id,
-      start_date, years_of_service, bank_account, current_salary, department, profile_image,position,Google_drive
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?)
-  `;
-
-  const values = [
-    employee_id,
-    full_name,
-    gender,
-    age ? parseInt(age) : 0,
-    birth_date || null,
-    citizen_id,
-    start_date || null,
-    years_of_service,
-    bank_account || null,
-    current_salary ? parseFloat(current_salary) : 0,
-    department,
-    profileImage,
-    position,
-    Google_drive
-  ];
-
-  db.query(sql, values, (err, result) => {
-    if (err) {
-      console.error('Insert error:', err);
-      return res.status(500).json({ error: 'เกิดข้อผิดพลาดในการเพิ่มข้อมูล' });
-    }
-    res.json({ message: 'เพิ่มข้อมูลพนักงานสำเร็จ', employee_id });
-  });
 });
 
 // อัปเดตข้อมูลพนักงาน
 
-
-app.put('/api/EDemployees/:id', upload.single('profile_image'), (req, res) => {
+app.put('/api/EDemployees/:id', upload.single('profile_image'), async (req, res) => {
   const employeeId = req.params.id;
   const {
     full_name,
@@ -276,7 +283,7 @@ app.put('/api/EDemployees/:id', upload.single('profile_image'), (req, res) => {
   const formatted_resign_date = resign_date ? formatDate(resign_date) : null;
 
   const sqlSelect = 'SELECT * FROM employee WHERE employee_id = ?';
-  db.query(sqlSelect, [employeeId], (err, results) => {
+  db.query(sqlSelect, [employeeId], async (err, results) => {
     if (err) return res.status(500).json({ error: 'Database error' });
     if (results.length === 0) return res.status(404).json({ error: 'Employee not found' });
 
@@ -286,13 +293,11 @@ app.put('/api/EDemployees/:id', upload.single('profile_image'), (req, res) => {
       : new Date().getFullYear() - new Date(formatted_start_date).getFullYear();
 
     let profile_image = oldData.profile_image;
-    if (req.file) {
-      // ลบรูปเก่า (ถ้ามี)
-      if (profile_image && fs.existsSync(`./uploads/profile_images/${profile_image}`)) {
-        fs.unlinkSync(`./uploads/profile_images/${profile_image}`);
-      }
-      profile_image = req.file.filename;
-    }
+
+    if (req.file && req.file.path) {
+  profile_image = req.file.path; // path ที่ cloudinary storage ส่งกลับมา เป็น URL แล้ว
+}
+
 
     const newData = {
       full_name,
@@ -359,7 +364,7 @@ app.put('/api/EDemployees/:id', upload.single('profile_image'), (req, res) => {
         if (logErr) console.error('❌ Error logging:', logErr);
         return res.json({
           message: '✅ อัปเดตสำเร็จ',
-          profile_image: `/uploads${profile_image}`
+          profile_image: profile_image // ✅ ส่งกลับลิงก์จาก Cloudinary
         });
       });
     });

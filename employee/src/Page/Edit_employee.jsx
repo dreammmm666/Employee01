@@ -22,7 +22,6 @@ function EditEmployee() {
     บริหาร: ['ผู้จัดการทั่วไป', 'ประธานบริษัท']
   }
 
-  // ใช้ URL backend จาก env หรือ fallback เป็น localhost
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
   useEffect(() => {
@@ -38,6 +37,9 @@ function EditEmployee() {
       setPositionOptions([])
     }
   }, [selectedEmployee?.department])
+
+  // ฟังก์ชันเช็คว่า string เป็น URL หรือไม่
+  const isFullUrl = (str) => /^https?:\/\//.test(str)
 
   const handleSearchChange = (e) => {
     const value = e.target.value
@@ -56,7 +58,11 @@ function EditEmployee() {
     setFilteredSuggestions([])
 
     if (emp.profile_image) {
-      setImagePreview(`${API_URL}/uploads/${emp.profile_image}`)
+      if (isFullUrl(emp.profile_image)) {
+        setImagePreview(emp.profile_image)
+      } else {
+        setImagePreview(`${API_URL}/uploads/${emp.profile_image}`)
+      }
     } else {
       setImagePreview(null)
     }
@@ -96,24 +102,44 @@ function EditEmployee() {
     formData.set('age', parseInt(selectedEmployee.age) || 0)
     formData.set('current_salary', parseFloat(selectedEmployee.current_salary) || 0)
     formData.set('user_id', parseInt(user_id))
-    formData.set('department', selectedEmployee.department === 'อื่นๆ' ? customDept : selectedEmployee.department)
-    formData.set('position', selectedEmployee.position === 'อื่นๆ' ? customPos : selectedEmployee.position)
+    formData.set(
+      'department',
+      selectedEmployee.department === 'อื่นๆ' ? customDept : selectedEmployee.department
+    )
+    formData.set(
+      'position',
+      selectedEmployee.position === 'อื่นๆ' ? customPos : selectedEmployee.position
+    )
 
     if (imageFile) {
       formData.append('profile_image', imageFile)
     }
 
     try {
-      await axios.put(`${API_URL}/api/EDemployees/${selectedEmployee.employee_id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
+      const res = await axios.put(
+        `${API_URL}/api/EDemployees/${selectedEmployee.employee_id}`,
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        }
+      )
 
       alert('✅ อัปเดตข้อมูลเรียบร้อยแล้ว')
-      setSelectedEmployee(null)
-      setSearchText('')
-      setImageFile(null)
-      setImagePreview(null)
-      if (fileInputRef.current) fileInputRef.current.value = ''
+
+      if (res.data.profile_image) {
+        setImagePreview(res.data.profile_image)  // ใช้ URL ที่ backend ส่งกลับมา (Cloudinary URL)
+
+        setSelectedEmployee(prev => ({
+          ...prev,
+          profile_image: res.data.profile_image
+        }))
+      }
+
+      // ถ้าต้องการเคลียร์ฟอร์มก็ทำได้ เช่น
+      // setSelectedEmployee(null)
+      // setSearchText('')
+      // setImageFile(null)
+      // if (fileInputRef.current) fileInputRef.current.value = ''
     } catch (err) {
       alert('❌ เกิดข้อผิดพลาด: ' + err.message)
     }
@@ -182,6 +208,7 @@ function EditEmployee() {
                 />
               </div>
 
+              {/* ฟอร์มอื่นๆ ตามเดิม... */}
               <label>ชื่อ - นามสกุล</label>
               <input type="text" name="full_name" value={selectedEmployee.full_name || ''} autoComplete='off' onChange={handleInputChange} />
 

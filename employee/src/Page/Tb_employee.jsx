@@ -67,17 +67,17 @@ function EmployeeTable() {
   }
 
   useEffect(() => {
-  const fetchData = async () => {
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000)) // wait 1 sec
-      const res = await axios.get(`${API_URL}/api/employees`)
-      setEmployees(res.data)
-    } catch (err) {
-      console.error('Error fetching employees:', err)
+    const fetchData = async () => {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 1000)) // wait 1 sec
+        const res = await axios.get(`${API_URL}/api/employees`)
+        setEmployees(res.data)
+      } catch (err) {
+        console.error('Error fetching employees:', err)
+      }
     }
-  }
-  fetchData()
-}, [API_URL])
+    fetchData()
+  }, [API_URL])
 
   // Pagination
   const indexOfLastItem = currentPage * itemsPerPage
@@ -104,6 +104,17 @@ function EmployeeTable() {
 
   const handleCloseModal = () => {
     setShowModal(false)
+  }
+
+  // ฟังก์ชันช่วยแปลง profile_image เป็น URL เต็ม
+  const getProfileImageUrl = (profileImage) => {
+    if (!profileImage) {
+      return `${API_URL}/uploads/default.jpg`
+    }
+    if (/^https?:\/\//.test(profileImage)) {
+      return profileImage
+    }
+    return `${API_URL}/uploads/${profileImage}`
   }
 
   return (
@@ -146,13 +157,13 @@ function EmployeeTable() {
             <button className="close-button" onClick={handleCloseModal}>×</button>
             <div className="modal-body-horizontal">
               <div className="modal-image">
-               <img
-  src={`${API_URL}/uploads/${selectedEmployee.profile_image || 'default.jpg'}`}
-  alt="Employee"
-  onError={(e) => {
-    e.target.src = `${API_URL}/uploads/default.jpg`
-  }}
-/>
+                <img
+                  src={getProfileImageUrl(selectedEmployee.profile_image)}
+                  alt="Employee"
+                  onError={(e) => {
+                    e.target.src = `${API_URL}/uploads/default.jpg`
+                  }}
+                />
               </div>
               <div className="modal-info">
                 <p><strong>รหัสพนักงาน:</strong> {selectedEmployee.employee_id}</p>

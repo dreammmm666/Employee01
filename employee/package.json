@@ -10,6 +10,8 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@cloudinary/react": "^1.14.3",
+    "@cloudinary/url-gen": "^1.21.0",
     "axios": "^1.10.0",
     "multer": "^2.0.1",
     "react": "^19.1.0",
