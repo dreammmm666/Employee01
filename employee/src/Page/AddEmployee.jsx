@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import NavBar from '../Component/Navbar';
 import '../Css/Edit.css'; // CSS เดิมของคุณ
+import Swal from 'sweetalert2'
 
 function AddEmployeeWithImage() {
   const [formData, setFormData] = useState({
@@ -64,7 +65,11 @@ function AddEmployeeWithImage() {
     e.preventDefault();
 
     if (!formData.full_name || !formData.citizen_id) {
-      alert('กรุณากรอกข้อมูลที่จำเป็นให้ครบ');
+      Swal.fire({
+        icon: 'warning',
+        title: 'กรุณากรอกข้อมูลที่จำเป็นให้ครบ',
+        confirmButtonText: 'ตกลง'
+      });
       return;
     }
 
@@ -93,11 +98,20 @@ function AddEmployeeWithImage() {
         data.append('profile_image', imageFile);
       }
 
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/employees`, data, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/employees`,
+        data,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        }
+      );
 
-      alert(`เพิ่มข้อมูลพนักงานสำเร็จ\nรหัสพนักงาน: ${res.data.employee_id}`);
+      Swal.fire({
+        icon: 'success',
+        title: 'เพิ่มข้อมูลพนักงานสำเร็จ',
+        text: `รหัสพนักงาน: ${res.data.employee_id}`,
+        confirmButtonText: 'ตกลง'
+      });
 
       setFormData({
         employee_id: '',
@@ -121,7 +135,12 @@ function AddEmployeeWithImage() {
       if (fileInputRef.current) fileInputRef.current.value = '';
 
     } catch (error) {
-      alert('เกิดข้อผิดพลาดในการเพิ่มข้อมูล: ' + error.message);
+      Swal.fire({
+        title: 'เกิดข้อผิดพลาด',
+        text: error.message,
+        icon: 'error',
+        confirmButtonText: 'ปิด'
+      });
     }
   };
 

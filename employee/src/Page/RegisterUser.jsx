@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import NavBar from '../Component/Navbar';
 import '../Css/Edit.css';
+import Swal from 'sweetalert2';
 
 function RegisterUser() {
   const [formData, setFormData] = useState({
@@ -20,38 +21,58 @@ function RegisterUser() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!formData.username || !formData.password || !formData.full_name) {
-      alert('กรุณากรอกข้อมูลให้ครบ');
-      return;
-    }
+  if (!formData.username || !formData.password || !formData.full_name) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'กรุณากรอกข้อมูลให้ครบ',
+      confirmButtonText: 'ตกลง'
+    });
+    return;
+  }
 
-    if (formData.password !== formData.confirmPassword) {
-      alert('รหัสผ่านไม่ตรงกัน');
-      return;
-    }
+  if (formData.password !== formData.confirmPassword) {
+    Swal.fire({
+      icon: 'error',
+      title: 'รหัสผ่านไม่ตรงกัน',
+      confirmButtonText: 'ตกลง'
+    });
+    return;
+  }
 
-    try {
-      const res = await axios.post(`${API_URL}/register`, {
-        username: formData.username,
-        password: formData.password,
-        full_name: formData.full_name,
-        role: formData.role
-      });
+  try {
+    const res = await axios.post(`${API_URL}/register`, {
+      username: formData.username,
+      password: formData.password,
+      full_name: formData.full_name,
+      role: formData.role
+    });
 
-      alert('สร้างรบัญชีผู้ใช้สำเร็จ: ' + res.data.message);
-      setFormData({
-        username: '',
-        password: '',
-        confirmPassword: '',
-        full_name: '',
-        role: 'user'
-      });
-    } catch (err) {
-      alert('เกิดข้อผิดพลาด: ' + (err.response?.data?.message || err.message));
-    }
-  };
+    Swal.fire({
+      icon: 'success',
+      title: 'สร้างบัญชีผู้ใช้สำเร็จ',
+      text: res.data.message,
+      confirmButtonText: 'ตกลง'
+    });
+
+    setFormData({
+      username: '',
+      password: '',
+      confirmPassword: '',
+      full_name: '',
+      role: 'user'
+    });
+
+  } catch (err) {
+    Swal.fire({
+      icon: 'error',
+      title: 'เกิดข้อผิดพลาด',
+      text: err.response?.data?.message || err.message,
+      confirmButtonText: 'ปิด'
+    });
+  }
+};
 
   return (
     <>

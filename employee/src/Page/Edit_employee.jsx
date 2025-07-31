@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import '../Css/Edit.css'
 import NavBar from '../Component/Navbar'
+import Swal from 'sweetalert2'
 
 function EditEmployee() {
   const [employees, setEmployees] = useState([])
@@ -116,33 +117,37 @@ function EditEmployee() {
     }
 
     try {
-      const res = await axios.put(
-        `${API_URL}/api/EDemployees/${selectedEmployee.employee_id}`,
-        formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        }
-      )
-
-      alert('✅ อัปเดตข้อมูลเรียบร้อยแล้ว')
-
-      if (res.data.profile_image) {
-        setImagePreview(res.data.profile_image)  // ใช้ URL ที่ backend ส่งกลับมา (Cloudinary URL)
-
-        setSelectedEmployee(prev => ({
-          ...prev,
-          profile_image: res.data.profile_image
-        }))
-      }
-
-      // ถ้าต้องการเคลียร์ฟอร์มก็ทำได้ เช่น
-      // setSelectedEmployee(null)
-      // setSearchText('')
-      // setImageFile(null)
-      // if (fileInputRef.current) fileInputRef.current.value = ''
-    } catch (err) {
-      alert('❌ เกิดข้อผิดพลาด: ' + err.message)
+  const res = await axios.put(
+    `${API_URL}/api/EDemployees/${selectedEmployee.employee_id}`,
+    formData,
+    {
+      headers: { 'Content-Type': 'multipart/form-data' }
     }
+  )
+
+  Swal.fire({
+    title: ' สำเร็จ!',
+    text: 'อัปเดตข้อมูลเรียบร้อยแล้ว',
+    icon: 'success',
+    confirmButtonText: 'ตกลง'
+  })
+
+  if (res.data.profile_image) {
+    setImagePreview(res.data.profile_image)
+
+    setSelectedEmployee(prev => ({
+      ...prev,
+      profile_image: res.data.profile_image
+    }))
+  }
+} catch (err) {
+  Swal.fire({
+    title: '❌ เกิดข้อผิดพลาด',
+    text: err.message,
+    icon: 'error',
+    confirmButtonText: 'ปิด'
+  })
+}
   }
 
   const calculateAgeString = (birthDateStr) => {
