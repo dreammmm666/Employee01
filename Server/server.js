@@ -15,32 +15,27 @@ app.use(compression());
 const PORT = 3001;
 
 const allowedOrigins = [
-  'http://localhost:5173',        // สำหรับ dev ที่รัน localhost
-  'https://employee01.onrender.com' // สำหรับ prod ที่ deploy จริง
+  'http://localhost:5173',        // Dev React
+  'http://127.0.0.1:5173',        // Dev React อีกแบบ
+  'https://employee01.onrender.com' // Prod React บน Render
 ];
 
-
-
-app.options('*', cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Middleware CORS
 app.use(cors({
   origin: function (origin, callback) {
+    // อนุญาต request จาก Postman หรือ server ภายใน
     if (!origin) return callback(null, true);
+
+    // ถ้าเป็น dev ให้อนุญาตทุก origin
+    if (process.env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
+
+    // ถ้าอยู่ใน allowedOrigins
     if (allowedOrigins.includes(origin)) {
-      callback(null, true);
+      return callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      return callback(new Error('Not allowed by CORS: ' + origin));
     }
   },
   credentials: true,
@@ -48,6 +43,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// รองรับ preflight requests
+app.options('*', cors());
 
 
 
@@ -93,9 +90,17 @@ function formatDate(dateStr) {
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
 
+  console.log('🔍 Login payload:', username, password); // log ค่าที่ส่งมา
+
   const sql = 'SELECT * FROM users WHERE username = ?';
   db.query(sql, [username], async (err, results) => {
-    if (err) return res.status(500).json({ message: 'Database error' });
+    if (err) {
+      console.error('❌ Database error:', err);
+      return res.status(500).json({ message: 'Database error' });
+    }
+
+    console.log('🔍 Query result:', results); // log ผลลัพธ์จาก query
+
     if (results.length === 0) {
       return res.status(401).json({ message: 'Invalid username or password' });
     }

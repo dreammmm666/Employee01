@@ -1,20 +1,18 @@
 const mysql = require('mysql2');
-require('dotenv').config();
 
 const connection = mysql.createConnection({
-  host: 'shuttle.proxy.rlwy.net',
+  host: 'turntable.proxy.rlwy.net',
   user: 'root',
-  password: 'bVFNSxyxKbKZJMQMqxXiFoQFiXgCDYIj',
+  password: 'LtOqcrnXBVZyIsHjHxEmGGMLNzPtfboV',
   database: 'railway',
-  port: 59143
+  port: 22318
 });
 
 connection.connect((err) => {
   if (err) {
-    console.error('❌ Error connecting to Railway MySQL:', err);
+    console.error('❌ Connection error details:', err.code, err.message);
     return;
   }
-  console.log('✅ Connected to Railway MySQL database!');
+  console.log('✅ Connected!');
+  connection.end();
 });
-
-module.exports = connection;
