@@ -5,7 +5,8 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcrypt');
-const db = require('./db');
+const db = require('./db'); // db จะเป็น connection object
+
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 const app = express();

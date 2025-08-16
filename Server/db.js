@@ -14,5 +14,9 @@ connection.connect((err) => {
     return;
   }
   console.log('✅ Connected!');
-  connection.end();
 });
+
+// **ไม่ต้องปิด connection**
+// connection.end();
+
+module.exports = connection; // export connection เพื่อให้ server.js ใช้งาน db.query ได้
