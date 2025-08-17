@@ -13,9 +13,11 @@ const NavBar = () => {
   }, [location]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    window.location.replace('/'); // เปลี่ยนหน้าแบบไม่เก็บ history
-  };
+  localStorage.clear();
+  window.location.replace('/');
+}
+
+
 
   return (
     <nav id="nav-bar" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
