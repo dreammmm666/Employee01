@@ -183,6 +183,7 @@ app.post('/api/employees', upload.single('profile_image'), async (req, res) => {
       bank_account,
       current_salary,
       department,
+      phone_number,
       position,
       Google_drive
     } = req.body;
@@ -211,27 +212,28 @@ app.post('/api/employees', upload.single('profile_image'), async (req, res) => {
     const sql = `
       INSERT INTO employee (
         employee_id, full_name, gender, age, birth_date, citizen_id,
-        start_date, years_of_service, bank_account, current_salary, department, profile_image, position, Google_drive
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        start_date, years_of_service, bank_account, current_salary, department, phone_number, profile_image, position, Google_drive
+      ) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    const values = [
-      employee_id,
-      full_name,
-      gender,
-      age ? parseInt(age) : 0,
-      birth_date || null,
-      citizen_id,
-      start_date || null,
-      years_of_service,
-      bank_account || null,
-      current_salary ? parseFloat(current_salary) : 0,
-      department,
-      profileImage,  // <-- เอา URL จาก Cloudinary
-      position,
-      Google_drive
-    ];
+  const values = [
+  employee_id,              // employee_id
+  full_name,                // full_name
+  gender,                   // gender
+  age ? parseInt(age) : 0,  // age
+  birth_date || null,       // birth_date
+  citizen_id,               // citizen_id
+  start_date || null,       // start_date
+  years_of_service,         // years_of_service
+  bank_account || null,     // bank_account
+  phone_number || '',       // phone_number ✅
+  current_salary ? parseFloat(current_salary) : 0, // current_salary
+  department,               // department
+  profileImage,             // profile_image
+  position,                 // position
+  Google_drive              // Google_drive
+];
 
     db.query(sql, values, (err, result) => {
       if (err) {
@@ -248,138 +250,99 @@ app.post('/api/employees', upload.single('profile_image'), async (req, res) => {
 
 // อัปเดตข้อมูลพนักงาน
 
-app.put('/api/EDemployees/:id', upload.single('profile_image'), async (req, res) => {
+app.put('/api/EDemployees/:id', upload.single('profile_image'), (req, res) => {
   const employeeId = req.params.id;
-  const {
-    full_name,
-    gender,
-    age,
-    birth_date,
-    citizen_id,
-    start_date,
-    resign_date,
-    bank_account,
-    current_salary,
-    department,
-    position,
-    Google_drive,
-    user_id
-  } = req.body;
 
-  function formatDate(dateStr) {
+  // ตรวจสอบข้อมูลจาก client
+  console.log('📥 [Backend] req.body:', req.body);
+  console.log('📥 [Backend] req.file:', req.file);
+
+  // fallback และ parse ค่าให้แน่นอน
+  const full_name = req.body.full_name || '';
+  const gender = req.body.gender || '';
+  const age = isNaN(parseInt(req.body.age)) ? 0 : parseInt(req.body.age);
+  const birth_date = req.body.birth_date || null;
+  const citizen_id = req.body.citizen_id || '';
+  const phone_number = req.body.phone_number || '';
+  const start_date = req.body.start_date || null;
+  const resign_date = req.body.resign_date || null;
+  const bank_account = req.body.bank_account || '';
+  const current_salary = isNaN(parseFloat(req.body.current_salary)) ? 0 : parseFloat(req.body.current_salary);
+  const department = req.body.department || '';
+  const position = req.body.position || '';
+  const Google_drive = req.body.Google_drive || '';
+  const user_id = isNaN(parseInt(req.body.user_id)) ? 0 : parseInt(req.body.user_id);
+
+  // ฟังก์ชันแปลงวันที่
+  const formatDate = (dateStr) => {
     if (!dateStr) return null;
     const d = new Date(dateStr);
     if (isNaN(d)) return null;
     const offsetMs = d.getTimezoneOffset() * 60 * 1000;
-    const correctedDate = new Date(d.getTime() - offsetMs);
-    return correctedDate.toISOString().slice(0, 10);
-  }
-
-  function formatDateOnly(date) {
-    if (!date) return '';
-    const d = new Date(date);
-    if (isNaN(d)) return '';
-    const offsetMs = d.getTimezoneOffset() * 60 * 1000;
-    const correctedDate = new Date(d.getTime() - offsetMs);
-    return correctedDate.toISOString().slice(0, 10);
-  }
+    return new Date(d.getTime() - offsetMs).toISOString().slice(0, 10);
+  };
 
   const formatted_birth_date = formatDate(birth_date);
   const formatted_start_date = formatDate(start_date);
   const formatted_resign_date = resign_date ? formatDate(resign_date) : null;
 
-  const sqlSelect = 'SELECT * FROM employee WHERE employee_id = ?';
-  db.query(sqlSelect, [employeeId], async (err, results) => {
-    if (err) return res.status(500).json({ error: 'Database error' });
+  // ดึงข้อมูลเก่า
+  db.query('SELECT * FROM employee WHERE employee_id = ?', [employeeId], (err, results) => {
+    if (err) {
+      console.error('❌ [Backend] DB Select error:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
     if (results.length === 0) return res.status(404).json({ error: 'Employee not found' });
 
     const oldData = results[0];
-    const years_of_service = formatted_resign_date
-      ? new Date(formatted_resign_date).getFullYear() - new Date(formatted_start_date).getFullYear()
-      : new Date().getFullYear() - new Date(formatted_start_date).getFullYear();
 
-    let profile_image = oldData.profile_image;
+    const years_of_service = formatted_start_date
+      ? (formatted_resign_date
+          ? new Date(formatted_resign_date).getFullYear() - new Date(formatted_start_date).getFullYear()
+          : new Date().getFullYear() - new Date(formatted_start_date).getFullYear())
+      : 0;
 
-    if (req.file && req.file.path) {
-  profile_image = req.file.path; // path ที่ cloudinary storage ส่งกลับมา เป็น URL แล้ว
-}
-
-
-    const newData = {
-      full_name,
-      gender,
-      age: parseInt(age),
-      birth_date: formatted_birth_date,
-      citizen_id,
-      start_date: formatted_start_date,
-      resign_date: formatted_resign_date,
-      years_of_service,
-      bank_account,
-      current_salary: parseFloat(current_salary),
-      department,
-      position,
-      Google_drive,
-      profile_image
-    };
-
-    const changedFields = {};
-    for (const key in newData) {
-      let oldVal = oldData[key];
-      let newVal = newData[key];
-      if (['birth_date', 'start_date', 'resign_date'].includes(key)) {
-        oldVal = formatDateOnly(oldVal);
-        newVal = formatDateOnly(newVal);
-      } else {
-        oldVal = oldVal === null ? '' : String(oldVal);
-        newVal = newVal === null ? '' : String(newVal);
-      }
-      if (oldVal !== newVal) {
-        changedFields[key] = { before: oldVal, after: newVal };
-      }
-    }
-
-    if (Object.keys(changedFields).length === 0) {
-      return res.json({ message: 'ไม่มีการเปลี่ยนแปลงข้อมูล' });
-    }
+    const profile_image = req.file ? req.file.filename : oldData.profile_image;
 
     const sqlUpdate = `
       UPDATE employee SET
-        full_name = ?, gender = ?, age = ?, birth_date = ?, citizen_id = ?,
-        start_date = ?, resign_date = ?, years_of_service = ?, bank_account = ?,
-        current_salary = ?, department = ?, position = ?, Google_drive = ?, profile_image = ?
-      WHERE employee_id = ?
+        full_name=?, gender=?, age=?, birth_date=?, citizen_id=?,
+        start_date=?, resign_date=?, years_of_service=?, bank_account=?, phone_number=?,
+        current_salary=?, department=?, position=?, Google_drive=?, profile_image=?
+      WHERE employee_id=?
     `;
+
     const updateValues = [
-      full_name, gender, parseInt(age), formatted_birth_date, citizen_id,
-      formatted_start_date, formatted_resign_date, years_of_service, bank_account,
-      parseFloat(current_salary), department, position, Google_drive, profile_image, employeeId
+      full_name, gender, age, formatted_birth_date, citizen_id,
+      formatted_start_date, formatted_resign_date, years_of_service, bank_account, phone_number,
+      current_salary, department, position, Google_drive, profile_image,
+      employeeId
     ];
 
-    db.query(sqlUpdate, updateValues, (updateErr) => {
-      if (updateErr) return res.status(500).json({ error: 'เกิดข้อผิดพลาดในการอัปเดต' });
+    console.log('📝 [Backend] SQL Update Values:', updateValues);
 
+    db.query(sqlUpdate, updateValues, (updateErr) => {
+      if (updateErr) {
+        console.error('❌ [Backend] Update error:', updateErr);
+        return res.status(500).json({ error: 'เกิดข้อผิดพลาดในการอัปเดต' });
+      }
+
+      // log
+      const changedFields = { phone_number, full_name, department, position }; // log fields สำคัญ
       const logSql = `
         INSERT INTO log_edemployee (user_id, action, target_table, target_id, description, created_at)
         VALUES (?, ?, ?, ?, ?, NOW())
       `;
-      const logValues = [
-        user_id || 0, 'Edit Employee', 'employee', employeeId, JSON.stringify(changedFields)
-      ];
+      const logValues = [user_id, 'Edit Employee', 'employee', employeeId, JSON.stringify(changedFields)];
 
       db.query(logSql, logValues, (logErr) => {
         if (logErr) console.error('❌ Error logging:', logErr);
-        return res.json({
-          message: '✅ อัปเดตสำเร็จ',
-          profile_image: profile_image // ✅ ส่งกลับลิงก์จาก Cloudinary
-        });
+        console.log('✅ [Backend] Update Success for employee_id:', employeeId);
+        return res.json({ message: '✅ อัปเดตสำเร็จ', profile_image });
       });
     });
   });
 });
-
-
-
-
 
 
 

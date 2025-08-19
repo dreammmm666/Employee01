@@ -70,15 +70,17 @@ function EditEmployee() {
   }
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target
-    let updated = { ...selectedEmployee, [name]: value }
+  const { name, value } = e.target
+  let updated = { ...selectedEmployee, [name]: value }
 
-    if (name === 'birth_date') {
-      updated.age = calculateAgeString(value)
-    }
-
-    setSelectedEmployee(updated)
+  if (name === 'birth_date') {
+    updated.age = calculateAgeString(value)
   }
+
+  console.log(`🔄 [React] field change: ${name} =`, value)  // ✅ Debug
+
+  setSelectedEmployee(updated)
+}
 
   const handleImageChange = (e) => {
     const file = e.target.files[0]
@@ -88,67 +90,34 @@ function EditEmployee() {
     }
   }
 
-  const handleSave = async () => {
-    const user_id = localStorage.getItem('user_id')
-    if (!user_id) {
-      alert('❌ ไม่พบ user_id กรุณาเข้าสู่ระบบใหม่')
-      return
-    }
+const handleSave = async () => {
+  const formData = new FormData();
 
-    const formData = new FormData()
-    for (const key in selectedEmployee) {
-      formData.append(key, selectedEmployee[key])
-    }
+  for (const key in selectedEmployee) {
+    formData.append(key, selectedEmployee[key] ?? '');
+  }
 
-    formData.set('age', parseInt(selectedEmployee.age) || 0)
-    formData.set('current_salary', parseFloat(selectedEmployee.current_salary) || 0)
-    formData.set('user_id', parseInt(user_id))
-    formData.set(
-      'department',
-      selectedEmployee.department === 'อื่นๆ' ? customDept : selectedEmployee.department
-    )
-    formData.set(
-      'position',
-      selectedEmployee.position === 'อื่นๆ' ? customPos : selectedEmployee.position
-    )
+  formData.set('age', parseInt(selectedEmployee.age) || 0);
+  formData.set('current_salary', parseFloat(selectedEmployee.current_salary) || 0);
+  formData.set('department', selectedEmployee.department === 'อื่นๆ' ? customDept : selectedEmployee.department);
+  formData.set('position', selectedEmployee.position === 'อื่นๆ' ? customPos : selectedEmployee.position);
+  formData.set('phone_number', (selectedEmployee.phone_number || '').toString()); // ✅ เป็น string
+  formData.set('user_id', parseInt(localStorage.getItem('user_id')) || 0);
 
-    if (imageFile) {
-      formData.append('profile_image', imageFile)
-    }
+  if (imageFile) formData.append('profile_image', imageFile);
 
-    try {
-  const res = await axios.put(
-    `${API_URL}/api/EDemployees/${selectedEmployee.employee_id}`,
-    formData,
-    {
+  console.log('📤 [React] Sending phone_number:', formData.get('phone_number'));
+
+  try {
+    const res = await axios.put(`${API_URL}/api/EDemployees/${selectedEmployee.employee_id}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
-    }
-  )
-
-  Swal.fire({
-    title: ' สำเร็จ!',
-    text: 'อัปเดตข้อมูลเรียบร้อยแล้ว',
-    icon: 'success',
-    confirmButtonText: 'ตกลง'
-  })
-
-  if (res.data.profile_image) {
-    setImagePreview(res.data.profile_image)
-
-    setSelectedEmployee(prev => ({
-      ...prev,
-      profile_image: res.data.profile_image
-    }))
+    });
+    Swal.fire('สำเร็จ!', 'อัปเดตข้อมูลเรียบร้อยแล้ว', 'success');
+    if (res.data.profile_image) setImagePreview(res.data.profile_image);
+  } catch (err) {
+    Swal.fire('❌ เกิดข้อผิดพลาด', err.message, 'error');
   }
-} catch (err) {
-  Swal.fire({
-    title: '❌ เกิดข้อผิดพลาด',
-    text: err.message,
-    icon: 'error',
-    confirmButtonText: 'ปิด'
-  })
-}
-  }
+};
 
   const calculateAgeString = (birthDateStr) => {
     if (!birthDateStr) return ''
@@ -230,7 +199,12 @@ function EditEmployee() {
               <input type="date" name="birth_date" value={selectedEmployee.birth_date?.slice(0, 10) || ''} onChange={handleInputChange} />
 
               <label>เลขบัตรประชาชน</label>
-              <input type="text" name="citizen_id" value={selectedEmployee.citizen_id || ''} onChange={handleInputChange} />
+              <input type="text" name="citizen_id"   autoComplete='off' value={selectedEmployee.citizen_id || ''} onChange={handleInputChange} />
+              
+              <label>เบอร์โทรศัพท์</label>
+              <input type="text" name="phone_number" value={selectedEmployee.phone_number || ''} autoComplete='off' onChange={handleInputChange} />
+
+
 
               <label>แผนก</label>
               <select name="department" value={selectedEmployee.department || ''} onChange={handleInputChange}>

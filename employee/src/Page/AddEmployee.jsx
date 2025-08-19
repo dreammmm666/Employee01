@@ -16,6 +16,7 @@ function AddEmployeeWithImage() {
     bank_account: '',
     current_salary: '',
     department: '',
+    phone_number: '',
     otherDepartment: '',
     position: '',
     otherPosition: '',
@@ -87,6 +88,7 @@ function AddEmployeeWithImage() {
       data.append('birth_date', formData.birth_date);
       data.append('age', parseInt(formData.age) || 0);
       data.append('citizen_id', formData.citizen_id);
+       data.append('phone_number', formData.phone_number);
       data.append('start_date', formData.start_date);
       data.append('bank_account', formData.bank_account);
       data.append('current_salary', parseFloat(formData.current_salary) || 0);
@@ -97,7 +99,10 @@ function AddEmployeeWithImage() {
       if (imageFile) {
         data.append('profile_image', imageFile);
       }
-
+       console.log('--- FormData ---');
+for (let pair of data.entries()) {
+  console.log(pair[0]+ ': ' + pair[1]);
+}
       const res = await axios.post(
         `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/employees`,
         data,
@@ -126,6 +131,7 @@ function AddEmployeeWithImage() {
         department: '',
         otherDepartment: '',
         position: '',
+       phone_number: '',
         otherPosition: '',
         Google_drive: ''
       });
@@ -190,6 +196,9 @@ function AddEmployeeWithImage() {
 
             <label>เลขบัตรประชาชน</label>
             <input type="text" name="citizen_id" value={formData.citizen_id} onChange={handleChange} maxLength={13} autoComplete="off" required />
+            
+            <label>เบอร์โทรศัพท์</label>
+            <input type="text" name="phone_number" value={formData.phone_number} onChange={handleChange} maxLength={13} autoComplete="off" required />
 
             <label>แผนก</label>
             <select name="department" value={formData.department} onChange={handleChange}>

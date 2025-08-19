@@ -171,6 +171,7 @@ function EmployeeTable() {
                 <p><strong>ชื่อ:</strong> {selectedEmployee.full_name}</p>
                 <p><strong>เพศ:</strong> {selectedEmployee.gender}</p>
                 <p><strong>อายุ:</strong> {calculateAge(selectedEmployee.birth_date)}</p>
+                <p><strong>เบอร์โทรศัพท์:</strong> {selectedEmployee.phone_number}</p>
                 <p><strong>แผนก:</strong> {selectedEmployee.department}</p>
                 <p><strong>ตําเเหน่ง:</strong> {selectedEmployee.position}</p>
                 {selectedEmployee.Google_drive && (
