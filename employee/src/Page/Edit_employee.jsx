@@ -39,14 +39,16 @@ function EditEmployee() {
     }
   }, [selectedEmployee?.department])
 
-  // ฟังก์ชันเช็คว่า string เป็น URL หรือไม่
   const isFullUrl = (str) => /^https?:\/\//.test(str)
 
   const handleSearchChange = (e) => {
     const value = e.target.value
     setSearchText(value)
+
     const suggestions = employees.filter(emp =>
-      emp.full_name.toLowerCase().includes(value.toLowerCase())
+      emp.employee_id.toLowerCase().includes(value.toLowerCase()) ||
+      emp.full_name.toLowerCase().includes(value.toLowerCase()) ||
+      (emp.department && emp.department.toLowerCase().includes(value.toLowerCase()))
     )
     setFilteredSuggestions(suggestions)
   }
@@ -70,17 +72,22 @@ function EditEmployee() {
   }
 
   const handleInputChange = (e) => {
-  const { name, value } = e.target
-  let updated = { ...selectedEmployee, [name]: value }
+    const { name, value } = e.target
+    let updated = { ...selectedEmployee }
 
-  if (name === 'birth_date') {
-    updated.age = calculateAgeString(value)
+    if (name === 'current_salary') {
+      // ลบคอมม่าก่อนเก็บ
+      const numericValue = value.replace(/,/g, '')
+      updated[name] = numericValue
+    } else {
+      updated[name] = value
+      if (name === 'birth_date') {
+        updated.age = calculateAgeString(value)
+      }
+    }
+
+    setSelectedEmployee(updated)
   }
-
-  console.log(`🔄 [React] field change: ${name} =`, value)  // ✅ Debug
-
-  setSelectedEmployee(updated)
-}
 
   const handleImageChange = (e) => {
     const file = e.target.files[0]
@@ -90,34 +97,32 @@ function EditEmployee() {
     }
   }
 
-const handleSave = async () => {
-  const formData = new FormData();
+  const handleSave = async () => {
+    const formData = new FormData()
 
-  for (const key in selectedEmployee) {
-    formData.append(key, selectedEmployee[key] ?? '');
+    for (const key in selectedEmployee) {
+      formData.append(key, selectedEmployee[key] ?? '')
+    }
+
+    formData.set('age', parseInt(selectedEmployee.age) || 0)
+    formData.set('current_salary', parseFloat(selectedEmployee.current_salary.replace(/,/g, '')) || 0)
+    formData.set('department', selectedEmployee.department === 'อื่นๆ' ? customDept : selectedEmployee.department)
+    formData.set('position', selectedEmployee.position === 'อื่นๆ' ? customPos : selectedEmployee.position)
+    formData.set('phone_number', (selectedEmployee.phone_number || '').toString())
+    formData.set('user_id', parseInt(localStorage.getItem('user_id')) || 0)
+
+    if (imageFile) formData.append('profile_image', imageFile)
+
+    try {
+      const res = await axios.put(`${API_URL}/api/EDemployees/${selectedEmployee.employee_id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      Swal.fire('สำเร็จ!', 'อัปเดตข้อมูลเรียบร้อยแล้ว', 'success')
+      if (res.data.profile_image) setImagePreview(res.data.profile_image)
+    } catch (err) {
+      Swal.fire('❌ เกิดข้อผิดพลาด', err.message, 'error')
+    }
   }
-
-  formData.set('age', parseInt(selectedEmployee.age) || 0);
-  formData.set('current_salary', parseFloat(selectedEmployee.current_salary) || 0);
-  formData.set('department', selectedEmployee.department === 'อื่นๆ' ? customDept : selectedEmployee.department);
-  formData.set('position', selectedEmployee.position === 'อื่นๆ' ? customPos : selectedEmployee.position);
-  formData.set('phone_number', (selectedEmployee.phone_number || '').toString()); // ✅ เป็น string
-  formData.set('user_id', parseInt(localStorage.getItem('user_id')) || 0);
-
-  if (imageFile) formData.append('profile_image', imageFile);
-
-  console.log('📤 [React] Sending phone_number:', formData.get('phone_number'));
-
-  try {
-    const res = await axios.put(`${API_URL}/api/EDemployees/${selectedEmployee.employee_id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-    Swal.fire('สำเร็จ!', 'อัปเดตข้อมูลเรียบร้อยแล้ว', 'success');
-    if (res.data.profile_image) setImagePreview(res.data.profile_image);
-  } catch (err) {
-    Swal.fire('❌ เกิดข้อผิดพลาด', err.message, 'error');
-  }
-};
 
   const calculateAgeString = (birthDateStr) => {
     if (!birthDateStr) return ''
@@ -141,7 +146,7 @@ const handleSave = async () => {
           <input
             type="text"
             className="search-input"
-            placeholder="พิมพ์ชื่อพนักงาน..."
+            placeholder="พิมพ์ชื่อ, ไอดี หรือแผนก..."
             value={searchText}
             onChange={handleSearchChange}
           />
@@ -149,7 +154,7 @@ const handleSave = async () => {
             <ul className="autocomplete-suggestions">
               {filteredSuggestions.map(emp => (
                 <li key={emp.employee_id} onClick={() => handleSelectSuggestion(emp)}>
-                  {emp.full_name}
+                  {emp.employee_id} - {emp.full_name} - {emp.department}
                 </li>
               ))}
             </ul>
@@ -165,10 +170,7 @@ const handleSave = async () => {
                 <br />
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    fileInputRef.current?.click()
-                  }}
+                  onClick={(e) => { e.preventDefault(); fileInputRef.current?.click() }}
                   style={{ marginBottom: '10px' }}
                 >
                   เปลี่ยนรูปภาพ
@@ -182,7 +184,6 @@ const handleSave = async () => {
                 />
               </div>
 
-              {/* ฟอร์มอื่นๆ ตามเดิม... */}
               <label>ชื่อ - นามสกุล</label>
               <input type="text" name="full_name" value={selectedEmployee.full_name || ''} autoComplete='off' onChange={handleInputChange} />
 
@@ -199,12 +200,10 @@ const handleSave = async () => {
               <input type="date" name="birth_date" value={selectedEmployee.birth_date?.slice(0, 10) || ''} onChange={handleInputChange} />
 
               <label>เลขบัตรประชาชน</label>
-              <input type="text" name="citizen_id"   autoComplete='off' value={selectedEmployee.citizen_id || ''} onChange={handleInputChange} />
-              
+              <input type="text" name="citizen_id" autoComplete='off' value={selectedEmployee.citizen_id || ''} onChange={handleInputChange} />
+
               <label>เบอร์โทรศัพท์</label>
               <input type="text" name="phone_number" value={selectedEmployee.phone_number || ''} autoComplete='off' onChange={handleInputChange} />
-
-
 
               <label>แผนก</label>
               <select name="department" value={selectedEmployee.department || ''} onChange={handleInputChange}>
@@ -243,7 +242,17 @@ const handleSave = async () => {
               <input type="text" name="bank_account" value={selectedEmployee.bank_account || ''} onChange={handleInputChange} />
 
               <label>เงินเดือนปัจจุบัน</label>
-              <input type="number" name="current_salary" value={selectedEmployee.current_salary || ''} onChange={handleInputChange} />
+              <input
+  type="text"
+  name="current_salary"
+  value={
+    selectedEmployee.current_salary
+      ? Number(selectedEmployee.current_salary)
+          .toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+      : ''
+  }
+  onChange={handleInputChange}
+/>
 
               <button onClick={handleSave}>💾 บันทึก</button>
             </div>

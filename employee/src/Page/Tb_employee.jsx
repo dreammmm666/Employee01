@@ -186,7 +186,16 @@ function EmployeeTable() {
                 <p><strong>วันที่ลาออก:</strong> {formatDate(selectedEmployee.resign_date)}</p>
                 <p><strong>อายุงาน:</strong> {formatYearsOfService(selectedEmployee.start_date, selectedEmployee.resign_date)}</p>
                 <p><strong>เลขบัญชีที่รับเงินเดือน:</strong> {selectedEmployee.bank_account}</p>
-                <p><strong>เงินเดือนปัจจุบัน:</strong> {selectedEmployee.current_salary} บาท</p>
+                <p>
+  <strong>เงินเดือนปัจจุบัน:</strong>{' '}
+  {selectedEmployee.current_salary
+    ? Number(selectedEmployee.current_salary).toLocaleString('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+      })
+    : '0'}{' '}
+  บาท
+</p>
               </div>
             </div>
           </div>
