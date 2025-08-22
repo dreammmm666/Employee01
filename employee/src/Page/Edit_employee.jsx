@@ -1,141 +1,144 @@
-import React, { useEffect, useRef, useState } from 'react'
-import axios from 'axios'
-import '../Css/Edit.css'
-import NavBar from '../Component/Navbar'
-import Swal from 'sweetalert2'
+import React, { useEffect, useRef, useState } from 'react';
+import axios from 'axios';
+import '../Css/Edit.css';
+import NavBar from '../Component/Navbar';
+import Swal from 'sweetalert2';
 
 function EditEmployee() {
-  const [employees, setEmployees] = useState([])
-  const [searchText, setSearchText] = useState('')
-  const [filteredSuggestions, setFilteredSuggestions] = useState([])
-  const [selectedEmployee, setSelectedEmployee] = useState(null)
-  const [customDept, setCustomDept] = useState('')
-  const [customPos, setCustomPos] = useState('')
-  const [imageFile, setImageFile] = useState(null)
-  const [imagePreview, setImagePreview] = useState(null)
-  const [positionOptions, setPositionOptions] = useState([])
-  const fileInputRef = useRef()
+  const [employees, setEmployees] = useState([]);
+  const [searchText, setSearchText] = useState('');
+  const [filteredSuggestions, setFilteredSuggestions] = useState([]);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [customDept, setCustomDept] = useState('');
+  const [customPos, setCustomPos] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [positionOptions, setPositionOptions] = useState([]);
+  const [isFocused, setIsFocused] = useState(false); 
+  const fileInputRef = useRef();
 
   const positionOptionsByDepartment = {
     กราฟิก: ['หัวหน้าฝ่ายกราฟิก', 'เจ้าหน้าที่กราฟิก'],
     การตลาด: ['หัวหน้าฝ่ายการตลาด', 'เจ้าหน้าที่การตลาด'],
     ธุรการบัญชีและลูกค้าสัมพันธ์: ['หัวหน้าธุรการ', 'บัญชี', 'ลูกค้าสัมพันธ์', 'เจ้าหน้าที่ทั่วไป'],
     บริหาร: ['ผู้จัดการทั่วไป', 'ประธานบริษัท']
-  }
+  };
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
   useEffect(() => {
     axios.get(`${API_URL}/api/employees`)
-      .then(res => setEmployees(res.data))
-      .catch(err => alert('เกิดข้อผิดพลาดในการดึงข้อมูลพนักงาน: ' + err.message))
-  }, [API_URL])
+      .then(res => {
+        setEmployees(res.data);
+        setFilteredSuggestions(res.data);
+      })
+      .catch(err => alert('เกิดข้อผิดพลาดในการดึงข้อมูลพนักงาน: ' + err.message));
+  }, [API_URL]);
 
   useEffect(() => {
     if (selectedEmployee?.department && positionOptionsByDepartment[selectedEmployee.department]) {
-      setPositionOptions(positionOptionsByDepartment[selectedEmployee.department])
+      setPositionOptions(positionOptionsByDepartment[selectedEmployee.department]);
     } else {
-      setPositionOptions([])
+      setPositionOptions([]);
     }
-  }, [selectedEmployee?.department])
-
-  const isFullUrl = (str) => /^https?:\/\//.test(str)
+  }, [selectedEmployee?.department]);
 
   const handleSearchChange = (e) => {
-    const value = e.target.value
-    setSearchText(value)
+    const value = e.target.value;
+    setSearchText(value);
 
-    const suggestions = employees.filter(emp =>
-      emp.employee_id.toLowerCase().includes(value.toLowerCase()) ||
-      emp.full_name.toLowerCase().includes(value.toLowerCase()) ||
-      (emp.department && emp.department.toLowerCase().includes(value.toLowerCase()))
-    )
-    setFilteredSuggestions(suggestions)
-  }
+    if (value.trim() === "") {
+      setFilteredSuggestions(employees);
+    } else {
+      const suggestions = employees.filter(emp =>
+        emp.employee_id.toLowerCase().includes(value.toLowerCase()) ||
+        emp.full_name.toLowerCase().includes(value.toLowerCase()) ||
+        (emp.department && emp.department.toLowerCase().includes(value.toLowerCase()))
+      );
+      setFilteredSuggestions(suggestions);
+    }
+  };
 
   const handleSelectSuggestion = (emp) => {
-    setSelectedEmployee(emp)
-    setCustomDept(emp.department === 'อื่นๆ' ? '' : emp.department)
-    setCustomPos(emp.position === 'อื่นๆ' ? '' : emp.position)
-    setSearchText(emp.full_name)
-    setFilteredSuggestions([])
+    setSelectedEmployee(emp);
+    setCustomDept(emp.department === 'อื่นๆ' ? '' : emp.department);
+    setCustomPos(emp.position === 'อื่นๆ' ? '' : emp.position);
+    setSearchText(emp.full_name);
+    setFilteredSuggestions([]);
 
-    if (emp.profile_image) {
-      if (isFullUrl(emp.profile_image)) {
-        setImagePreview(emp.profile_image)
-      } else {
-        setImagePreview(`${API_URL}/uploads/${emp.profile_image}`)
-      }
-    } else {
-      setImagePreview(null)
-    }
-  }
+    setImagePreview(emp.profile_image ? `${emp.profile_image}?t=${Date.now()}` : null);
+  };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target
-    let updated = { ...selectedEmployee }
+    const { name, value } = e.target;
+    let updated = { ...selectedEmployee };
 
     if (name === 'current_salary') {
-      // ลบคอมม่าก่อนเก็บ
-      const numericValue = value.replace(/,/g, '')
-      updated[name] = numericValue
+      const numericValue = value.replace(/,/g, '');
+      updated[name] = numericValue;
     } else {
-      updated[name] = value
+      updated[name] = value;
       if (name === 'birth_date') {
-        updated.age = calculateAgeString(value)
+        updated.age = calculateAgeString(value);
       }
     }
 
-    setSelectedEmployee(updated)
-  }
+    setSelectedEmployee(updated);
+  };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0]
+    const file = e.target.files[0];
     if (file) {
-      setImageFile(file)
-      setImagePreview(URL.createObjectURL(file))
+      if (imagePreview && imagePreview.startsWith("blob:")) {
+        URL.revokeObjectURL(imagePreview);
+      }
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
     }
-  }
+  };
 
   const handleSave = async () => {
-    const formData = new FormData()
-
+    const formData = new FormData();
     for (const key in selectedEmployee) {
-      formData.append(key, selectedEmployee[key] ?? '')
+      formData.append(key, selectedEmployee[key] ?? '');
     }
 
-    formData.set('age', parseInt(selectedEmployee.age) || 0)
-    formData.set('current_salary', parseFloat(selectedEmployee.current_salary.replace(/,/g, '')) || 0)
-    formData.set('department', selectedEmployee.department === 'อื่นๆ' ? customDept : selectedEmployee.department)
-    formData.set('position', selectedEmployee.position === 'อื่นๆ' ? customPos : selectedEmployee.position)
-    formData.set('phone_number', (selectedEmployee.phone_number || '').toString())
-    formData.set('user_id', parseInt(localStorage.getItem('user_id')) || 0)
+    formData.set('age', parseInt(selectedEmployee.age) || 0);
+    formData.set('current_salary', parseFloat(selectedEmployee.current_salary.replace(/,/g, '')) || 0);
+    formData.set('department', selectedEmployee.department === 'อื่นๆ' ? customDept : selectedEmployee.department);
+    formData.set('position', selectedEmployee.position === 'อื่นๆ' ? customPos : selectedEmployee.position);
+    formData.set('phone_number', (selectedEmployee.phone_number || '').toString());
+    formData.set('user_id', parseInt(localStorage.getItem('user_id')) || 0);
 
-    if (imageFile) formData.append('profile_image', imageFile)
+    if (imageFile) formData.append('profile_image', imageFile);
 
     try {
       const res = await axios.put(`${API_URL}/api/EDemployees/${selectedEmployee.employee_id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
-      })
-      Swal.fire('สำเร็จ!', 'อัปเดตข้อมูลเรียบร้อยแล้ว', 'success')
-      if (res.data.profile_image) setImagePreview(res.data.profile_image)
+      });
+
+      Swal.fire('สำเร็จ!', 'อัปเดตข้อมูลเรียบร้อยแล้ว', 'success');
+
+      if (res.data.profile_image) {
+        setImagePreview(`${res.data.profile_image}?t=${Date.now()}`);
+      }
     } catch (err) {
-      Swal.fire('❌ เกิดข้อผิดพลาด', err.message, 'error')
+      Swal.fire('❌ เกิดข้อผิดพลาด', err.message, 'error');
     }
-  }
+  };
 
   const calculateAgeString = (birthDateStr) => {
-    if (!birthDateStr) return ''
-    const today = new Date()
-    const birthDate = new Date(birthDateStr)
-    let years = today.getFullYear() - birthDate.getFullYear()
-    let months = today.getMonth() - birthDate.getMonth()
+    if (!birthDateStr) return '';
+    const today = new Date();
+    const birthDate = new Date(birthDateStr);
+    let years = today.getFullYear() - birthDate.getFullYear();
+    let months = today.getMonth() - birthDate.getMonth();
     if (months < 0) {
-      years--
-      months += 12
+      years--;
+      months += 12;
     }
-    return `${years} ปี ${months} เดือน`
-  }
+    return `${years} ปี ${months} เดือน`;
+  };
 
   return (
     <>
@@ -149,8 +152,10 @@ function EditEmployee() {
             placeholder="พิมพ์ชื่อ, ไอดี หรือแผนก..."
             value={searchText}
             onChange={handleSearchChange}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setTimeout(() => setIsFocused(false), 200)}
           />
-          {searchText && filteredSuggestions.length > 0 && (
+          {isFocused && filteredSuggestions.length > 0 && (
             <ul className="autocomplete-suggestions">
               {filteredSuggestions.map(emp => (
                 <li key={emp.employee_id} onClick={() => handleSelectSuggestion(emp)}>
@@ -170,7 +175,7 @@ function EditEmployee() {
                 <br />
                 <button
                   type="button"
-                  onClick={(e) => { e.preventDefault(); fileInputRef.current?.click() }}
+                  onClick={(e) => { e.preventDefault(); fileInputRef.current?.click(); }}
                   style={{ marginBottom: '10px' }}
                 >
                   เปลี่ยนรูปภาพ
@@ -184,7 +189,7 @@ function EditEmployee() {
                 />
               </div>
 
-              <label>ชื่อ - นามสกุล</label>
+             <label>ชื่อ - นามสกุล</label>
               <input type="text" name="full_name" value={selectedEmployee.full_name || ''} autoComplete='off' onChange={handleInputChange} />
 
               <label>เพศ</label>
@@ -254,13 +259,14 @@ function EditEmployee() {
   onChange={handleInputChange}
 />
 
+              
               <button onClick={handleSave}>💾 บันทึก</button>
             </div>
           )}
         </div>
       </div>
     </>
-  )
+  );
 }
 
-export default EditEmployee
+export default EditEmployee;

@@ -243,7 +243,7 @@ for (let pair of data.entries()) {
             <input type="text" name="bank_account" value={formData.bank_account} autoComplete="off" onChange={handleChange} />
 
             <label>เงินเดือนปัจจุบัน</label>
-            <input type="number" name="current_salary" value={formData.current_salary} onChange={handleChange} step="0.01" min="0" />
+            <input type="text" name="current_salary" value={formData.current_salary} onChange={handleChange}  />
 
             <label htmlFor="profile_image">คลิกเพื่อเลือกรูปภาพพนักงาน</label>
             <input type="file" id="profile_image" name="profile_image" accept="image/*" onChange={handleImageChange} ref={fileInputRef} />

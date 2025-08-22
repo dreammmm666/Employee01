@@ -218,21 +218,21 @@ app.post('/api/employees', upload.single('profile_image'), async (req, res) => {
     `;
 
   const values = [
-  employee_id,              // employee_id
-  full_name,                // full_name
-  gender,                   // gender
-  age ? parseInt(age) : 0,  // age
-  birth_date || null,       // birth_date
-  citizen_id,               // citizen_id
-  start_date || null,       // start_date
-  years_of_service,         // years_of_service
-  bank_account || null,     // bank_account
-  phone_number || '',       // phone_number ✅
-  current_salary ? parseFloat(current_salary) : 0, // current_salary
-  department,               // department
-  profileImage,             // profile_image
-  position,                 // position
-  Google_drive              // Google_drive
+  employee_id,             
+  full_name,               
+  gender,                   
+  age ? parseInt(age) : 0,  
+  birth_date || null,      
+  citizen_id,               
+  start_date || null,       
+  years_of_service,         
+  bank_account || null,     
+  phone_number || '',       
+  current_salary ? parseFloat(current_salary) : 0, 
+  department,               
+  profileImage,            
+  position,                 
+  Google_drive              
 ];
 
     db.query(sql, values, (err, result) => {
@@ -273,7 +273,6 @@ app.put('/api/EDemployees/:id', upload.single('profile_image'), (req, res) => {
   const Google_drive = req.body.Google_drive || '';
   const user_id = isNaN(parseInt(req.body.user_id)) ? 0 : parseInt(req.body.user_id);
 
-  // ฟังก์ชันแปลงวันที่
   const formatDate = (dateStr) => {
     if (!dateStr) return null;
     const d = new Date(dateStr);
@@ -288,10 +287,7 @@ app.put('/api/EDemployees/:id', upload.single('profile_image'), (req, res) => {
 
   // ดึงข้อมูลเก่า
   db.query('SELECT * FROM employee WHERE employee_id = ?', [employeeId], (err, results) => {
-    if (err) {
-      console.error('❌ [Backend] DB Select error:', err);
-      return res.status(500).json({ error: 'Database error' });
-    }
+    if (err) return res.status(500).json({ error: 'Database error' });
     if (results.length === 0) return res.status(404).json({ error: 'Employee not found' });
 
     const oldData = results[0];
@@ -302,7 +298,8 @@ app.put('/api/EDemployees/:id', upload.single('profile_image'), (req, res) => {
           : new Date().getFullYear() - new Date(formatted_start_date).getFullYear())
       : 0;
 
-    const profile_image = req.file ? req.file.filename : oldData.profile_image;
+    // ถ้ามีไฟล์ใหม่ ให้ใช้ URL จาก Cloudinary, ถ้าไม่มีก็ใช้ค่าเก่าใน DB
+    const profile_image = req.file ? req.file.path : oldData.profile_image;
 
     const sqlUpdate = `
       UPDATE employee SET
@@ -319,16 +316,11 @@ app.put('/api/EDemployees/:id', upload.single('profile_image'), (req, res) => {
       employeeId
     ];
 
-    console.log('📝 [Backend] SQL Update Values:', updateValues);
-
     db.query(sqlUpdate, updateValues, (updateErr) => {
-      if (updateErr) {
-        console.error('❌ [Backend] Update error:', updateErr);
-        return res.status(500).json({ error: 'เกิดข้อผิดพลาดในการอัปเดต' });
-      }
+      if (updateErr) return res.status(500).json({ error: 'เกิดข้อผิดพลาดในการอัปเดต' });
 
-      // log
-      const changedFields = { phone_number, full_name, department, position }; // log fields สำคัญ
+      // log fields สำคัญ
+      const changedFields = { phone_number, full_name, department, position };
       const logSql = `
         INSERT INTO log_edemployee (user_id, action, target_table, target_id, description, created_at)
         VALUES (?, ?, ?, ?, ?, NOW())
@@ -337,12 +329,15 @@ app.put('/api/EDemployees/:id', upload.single('profile_image'), (req, res) => {
 
       db.query(logSql, logValues, (logErr) => {
         if (logErr) console.error('❌ Error logging:', logErr);
-        console.log('✅ [Backend] Update Success for employee_id:', employeeId);
+        console.log('✅ Update Success for employee_id:', employeeId);
+
+        // ส่งกลับ URL ของ Cloudinary ให้ React แสดงรูปได้ทันที
         return res.json({ message: '✅ อัปเดตสำเร็จ', profile_image });
       });
     });
   });
 });
+
 
 
 
