@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import '../Css/EmployeeTable.css'
 import NavBar from '../Component/Navbar'
+import Swal from 'sweetalert2'
 
 function EmployeeTable() {
   const [employees, setEmployees] = useState([])
@@ -23,19 +24,39 @@ function EmployeeTable() {
   }
 
   const handleDeleteEmployee = async (employee_id) => {
-  if (!window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบพนักงานนี้?')) return;
+    const result = await Swal.fire({
+      title: 'คุณแน่ใจหรือไม่?',
+      text: "พนักงานจะถูกลบออกจากระบบ!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'ลบเลย',
+      cancelButtonText: 'ยกเลิก',
+    })
 
-  try {
-    await axios.delete(`${API_URL}/api/employees/${employee_id}`);
-    // อัปเดตรายการหลังลบ
-    setEmployees(employees.filter(emp => emp.employee_id !== employee_id));
-    setShowModal(false);
-    alert('✅ ลบข้อมูลพนักงานเรียบร้อยแล้ว');
-  } catch (err) {
-    console.error('Error deleting employee:', err);
-    alert('❌ เกิดข้อผิดพลาดในการลบพนักงาน');
+    if (result.isConfirmed) {
+      try {
+        const res = await axios.delete(`${API_URL}/api/employees/${employee_id}`)
+        setEmployees(employees.filter(emp => emp.employee_id !== employee_id))
+
+        Swal.fire({
+          title: 'ลบสำเร็จ!',
+          text: res.data.message || 'พนักงานถูกลบแล้ว',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false
+        })
+      } catch (err) {
+        console.error('Error deleting employee:', err)
+        Swal.fire({
+          title: 'เกิดข้อผิดพลาด',
+          text: 'ไม่สามารถลบพนักงานได้',
+          icon: 'error',
+        })
+      }
+    }
   }
-};
 
   const formatYearsOfService = (startDateStr, resignDateStr) => {
     if (!startDateStr) return '-'
