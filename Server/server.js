@@ -6,7 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcrypt');
 const db = require('./db'); // db จะเป็น connection object
-import { v4 as uuidv4 } from 'uuid';
+const { v4: uuidv4 } = require('uuid'); 
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 const app = express();
