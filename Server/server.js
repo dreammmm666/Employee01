@@ -6,7 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcrypt');
 const db = require('./db'); // db จะเป็น connection object
-
+import { v4 as uuidv4 } from 'uuid';
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 const app = express();
@@ -65,9 +65,16 @@ if (!fs.existsSync(uploadDir)) {
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'employee_profile_images', // ตั้งชื่อโฟลเดอร์บน Cloudinary
+    folder: 'employee_profile_images',
     allowed_formats: ['jpg', 'png', 'jpeg'],
-    public_id: (req, file) => Date.now() + '-' + file.originalname
+    public_id: (req, file) => {
+      // แก้ชื่อไฟล์ให้เป็นตัวอักษรภาษาอังกฤษ + ตัวเลข + _ เท่านั้น
+      const originalName = file.originalname
+        .toLowerCase()
+        .replace(/\s+/g, '-')        // แทนช่องว่างด้วย -
+        .replace(/[^a-z0-9\-\.]/g, ''); // ลบตัวอักษรพิเศษ
+      return `${Date.now()}-${originalName}`;
+    }
   }
 });
 
