@@ -22,6 +22,21 @@ function EmployeeTable() {
     return `${day}/${month}/${year}`
   }
 
+  const handleDeleteEmployee = async (employee_id) => {
+  if (!window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบพนักงานนี้?')) return;
+
+  try {
+    await axios.delete(`${API_URL}/api/employees/${employee_id}`);
+    // อัปเดตรายการหลังลบ
+    setEmployees(employees.filter(emp => emp.employee_id !== employee_id));
+    setShowModal(false);
+    alert('✅ ลบข้อมูลพนักงานเรียบร้อยแล้ว');
+  } catch (err) {
+    console.error('Error deleting employee:', err);
+    alert('❌ เกิดข้อผิดพลาดในการลบพนักงาน');
+  }
+};
+
   const formatYearsOfService = (startDateStr, resignDateStr) => {
     if (!startDateStr) return '-'
     const start = new Date(startDateStr)
@@ -196,6 +211,12 @@ function EmployeeTable() {
     : '0'}{' '}
   บาท
 </p>
+<button
+      style={{ marginTop: '10px', backgroundColor: 'red', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+      onClick={() => handleDeleteEmployee(selectedEmployee.employee_id)}
+    >
+      ลบพนักงาน
+    </button>
               </div>
             </div>
           </div>

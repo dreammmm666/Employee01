@@ -434,6 +434,15 @@ app.post('/register', async (req, res) => {
   }
 });
 
+app.delete('/api/employees/:id', (req, res) => {
+  const { id } = req.params;
+  db.query('DELETE FROM employee WHERE employee_id = ?', [id], (err, result) => {
+    if (err) return res.status(500).json({ error: 'Database error' });
+    if (result.affectedRows === 0) return res.status(404).json({ error: 'Employee not found' });
+    res.json({ message: 'Deleted successfully' });
+  });
+});
+
 
 
 const distPath = path.join(__dirname, 'employee-dist');
