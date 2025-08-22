@@ -235,7 +235,7 @@ function EditEmployee() {
               )}
 
               <label>ลิงก์ไดรฟ์</label>
-              <input type="text" name="Google_drive" value={selectedEmployee.Google_drive || ''} onChange={handleInputChange} />
+              <input type="text" name="Google_drive" autoComplete='off' value={selectedEmployee.Google_drive || ''} onChange={handleInputChange} />
 
               <label>วันเริ่มงาน(ค.ศ)</label>
               <input type="date" name="start_date" value={selectedEmployee.start_date?.slice(0, 10) || ''} onChange={handleInputChange} />
@@ -244,12 +244,13 @@ function EditEmployee() {
               <input type="date" name="resign_date" value={selectedEmployee.resign_date?.slice(0, 10) || ''} onChange={handleInputChange} />
 
               <label>เลขบัญชีที่รับเงินเดือน</label>
-              <input type="text" name="bank_account" value={selectedEmployee.bank_account || ''} onChange={handleInputChange} />
+              <input type="text" name="bank_account" autoComplete='off'  value={selectedEmployee.bank_account || ''} onChange={handleInputChange} />
 
               <label>เงินเดือนปัจจุบัน</label>
               <input
   type="text"
   name="current_salary"
+  autoComplete='off'
   value={
     selectedEmployee.current_salary
       ? Number(selectedEmployee.current_salary)
