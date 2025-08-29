@@ -178,80 +178,77 @@ app.get('/api/employees/search', (req, res) => {
 });
 
 app.post('/api/employees', upload.single('profile_image'), async (req, res) => {
-  try {
-    const {
-      employee_id,
-      full_name,
-      gender,
-      age,
-      birth_date,
-      citizen_id,
-      start_date,
-      bank_account,
-      current_salary,
-      department,
-      phone_number,
-      position,
-      Google_drive
-    } = req.body;
+  const {
+    employee_id,
+    full_name,
+    gender,
+    age,
+    birth_date,
+    citizen_id,
+    start_date,
+    bank_account,
+    current_salary,
+    department,
+    phone_number,
+    position,
+    Google_drive
+  } = req.body;
 
-    let profileImage = req.file ? req.file.path : null;
-
-    // คำนวณปีทำงาน
-    let years_of_service = 0;
-    if (start_date) {
-      const start = new Date(start_date);
-      const now = new Date();
-      years_of_service = now.getFullYear() - start.getFullYear();
-      if (
-        now.getMonth() < start.getMonth() ||
-        (now.getMonth() === start.getMonth() && now.getDate() < start.getDate())
-      ) {
-        years_of_service -= 1;
-      }
-    }
-
-    const sql = `
-      INSERT INTO employee (
-        employee_id, full_name, gender, age, birth_date, citizen_id,
-        start_date, years_of_service, bank_account, phone_number,
-        current_salary, department, profile_image, position, Google_drive
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-
-    const values = [
-      employee_id,
-      full_name,
-      gender,
-      parseInt(age) || 0,
-      birth_date || null,
-      citizen_id,
-      start_date || null,
-      years_of_service,
-      bank_account || null,
-      phone_number || '',
-      parseFloat(current_salary?.replace(/,/g, '')) || 0,
-      department || null,
-      profileImage,
-      position || null,
-      Google_drive || null
-    ];
-
-    const conn = await pool.getConnection();
-    try {
-      await conn.query(sql, values);
-      res.json({
-        message: 'เพิ่มข้อมูลพนักงานสำเร็จ',
-        employee_id,
-        profile_image: profileImage
-      });
-    } finally {
-      conn.release();
-    }
-  } catch (error) {
-    console.error('Insert error:', error);
-    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการเพิ่มข้อมูลพนักงาน' });
+  if (!full_name || !citizen_id) {
+    return res.status(400).json({ message: 'กรุณากรอกชื่อและเลขบัตรประชาชน' });
   }
+
+  const profileImage = req.file ? req.file.path : null;
+
+  // คำนวณปีทำงาน
+  let years_of_service = 0;
+  if (start_date) {
+    const start = new Date(start_date);
+    const now = new Date();
+    years_of_service = now.getFullYear() - start.getFullYear();
+    if (now.getMonth() < start.getMonth() || (now.getMonth() === start.getMonth() && now.getDate() < start.getDate())) {
+      years_of_service -= 1;
+    }
+  }
+
+  const sql = `
+    INSERT INTO employee (
+      employee_id, full_name, gender, age, birth_date, citizen_id,
+      start_date, years_of_service, bank_account, phone_number,
+      current_salary, department, profile_image, position, Google_drive
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  const values = [
+    employee_id || null,
+    full_name,
+    gender || null,
+    parseInt(age) || 0,
+    birth_date || null,
+    citizen_id,
+    start_date || null,
+    years_of_service,
+    bank_account || null,
+    phone_number || null,
+    parseFloat(current_salary?.toString().replace(/,/g, '')) || 0,
+    department || null,
+    profileImage || null,
+    position || null,
+    Google_drive || null
+  ];
+
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      console.error('Insert error:', err);
+      return res.status(500).json({ message: 'เกิดข้อผิดพลาดในการเพิ่มข้อมูลพนักงาน', error: err });
+    }
+
+    res.status(201).json({
+      message: 'เพิ่มข้อมูลพนักงานสำเร็จ',
+      employee_id,
+      profile_image: profileImage
+    });
+  });
 });
 
 // อัปเดตข้อมูลพนักงาน
