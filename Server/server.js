@@ -195,23 +195,18 @@ app.post('/api/employees', upload.single('profile_image'), async (req, res) => {
       Google_drive
     } = req.body;
 
-    let profileImage = null;
-
-    if (req.file && req.file.path) {
-  profileImage = req.file.path;
-}
+    let profileImage = req.file ? req.file.path : null;
 
     // คำนวณปีทำงาน
-    const formattedStartDate = start_date ? new Date(start_date) : null;
-    const formattedNow = new Date();
     let years_of_service = 0;
-    if (formattedStartDate) {
-      years_of_service = formattedNow.getFullYear() - formattedStartDate.getFullYear();
-      const hasNotCompletedYear =
-        formattedNow.getMonth() < formattedStartDate.getMonth() ||
-        (formattedNow.getMonth() === formattedStartDate.getMonth() &&
-          formattedNow.getDate() < formattedStartDate.getDate());
-      if (hasNotCompletedYear) {
+    if (start_date) {
+      const start = new Date(start_date);
+      const now = new Date();
+      years_of_service = now.getFullYear() - start.getFullYear();
+      if (
+        now.getMonth() < start.getMonth() ||
+        (now.getMonth() === start.getMonth() && now.getDate() < start.getDate())
+      ) {
         years_of_service -= 1;
       }
     }
@@ -219,39 +214,43 @@ app.post('/api/employees', upload.single('profile_image'), async (req, res) => {
     const sql = `
       INSERT INTO employee (
         employee_id, full_name, gender, age, birth_date, citizen_id,
-        start_date, years_of_service, bank_account, current_salary, department, phone_number, profile_image, position, Google_drive
-      ) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        start_date, years_of_service, bank_account, phone_number,
+        current_salary, department, profile_image, position, Google_drive
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-  const values = [
-  employee_id,             
-  full_name,               
-  gender,                   
-  age ? parseInt(age) : 0,  
-  birth_date || null,      
-  citizen_id,               
-  start_date || null,       
-  years_of_service,         
-  bank_account || null,     
-  phone_number || '',       
-  current_salary ? parseFloat(current_salary) : 0, 
-  department,               
-  profileImage,            
-  position,                 
-  Google_drive              
-];
+    const values = [
+      employee_id,
+      full_name,
+      gender,
+      parseInt(age) || 0,
+      birth_date || null,
+      citizen_id,
+      start_date || null,
+      years_of_service,
+      bank_account || null,
+      phone_number || '',
+      parseFloat(current_salary?.replace(/,/g, '')) || 0,
+      department || null,
+      profileImage,
+      position || null,
+      Google_drive || null
+    ];
 
-    db.query(sql, values, (err, result) => {
-      if (err) {
-        console.error('Insert error:', err);
-        return res.status(500).json({ error: 'เกิดข้อผิดพลาดในการเพิ่มข้อมูล' });
-      }
-      res.json({ message: 'เพิ่มข้อมูลพนักงานสำเร็จ', employee_id, profile_image: profileImage });
-    });
+    const conn = await pool.getConnection();
+    try {
+      await conn.query(sql, values);
+      res.json({
+        message: 'เพิ่มข้อมูลพนักงานสำเร็จ',
+        employee_id,
+        profile_image: profileImage
+      });
+    } finally {
+      conn.release();
+    }
   } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการอัปโหลดภาพ', details: error.message });
+    console.error('Insert error:', error);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการเพิ่มข้อมูลพนักงาน' });
   }
 });
 
