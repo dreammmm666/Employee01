@@ -1,22 +1,17 @@
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');  
+require('dotenv').config();
 
-const connection = mysql.createConnection({
-  host: 'turntable.proxy.rlwy.net',
-  user: 'root',
-  password: 'LtOqcrnXBVZyIsHjHxEmGGMLNzPtfboV',
-  database: 'railway',
-  port: 22318
+const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  connectTimeout: 10000,   // 10 วินาที
+  acquireTimeout: 10000
 });
 
-connection.connect((err) => {
-  if (err) {
-    console.error('❌ Connection error details:', err.code, err.message);
-    return;
-  }
-  console.log('✅ Connected!');
-});
-
-// **ไม่ต้องปิด connection**
-// connection.end();
-
-module.exports = connection; // export connection เพื่อให้ server.js ใช้งาน db.query ได้
+module.exports = pool;
