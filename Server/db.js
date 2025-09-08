@@ -1,4 +1,4 @@
-const mysql = require('mysql2/promise');  
+const mysql = require('mysql2/promise');
 require('dotenv').config();
 
 const pool = mysql.createPool({
@@ -10,8 +10,7 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  connectTimeout: 10000,   // 10 วินาที
-  acquireTimeout: 10000
+  connectTimeout: 10000 // ✅ ใช้ได้จริง
 });
 
 module.exports = pool;
